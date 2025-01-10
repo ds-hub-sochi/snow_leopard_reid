@@ -165,3 +165,44 @@ def find_series_per_individual(
         df_with_series_list.append(individual_df)
 
     return pd.concat(df_with_series_list)
+
+
+def get_date_and_time_from_ocr(
+    model,
+    tokenizer,
+    filepath: Path,
+) -> tuple[str, str]:
+    ocr_result: str = model.chat(tokenizer, str(filepath), ocr_type='ocr')
+    ocr_parts: list[str] = ocr_result.split(' ')
+    match len(ocr_parts):
+        case 1:
+            date_and_time: str = ocr_parts[0]
+        case 2:
+            date_and_time = ocr_parts[0]
+        case _:
+            date_and_time = ocr_parts[1]
+
+    date_and_time_parts: list[str] = re.split('/|:', date_and_time)
+
+    date_parts: list[str] = date_and_time_parts[:3]
+    date_parts[-1] = date_parts[-1][:-2]
+
+    if len(date_parts[0]) == 4:
+        year, month, day = date_parts
+    else:
+        day, month, year = date_parts
+        if int(month) > 12:
+            day, month = month, day
+
+    time_parts: list[str] = date_and_time_parts[2:]
+    time_parts[0] = time_parts[0][-2:]
+
+    # sometimes logo blocks the content so let's assume that an event has as early timing as possible
+    if len(time_parts) < 3:
+        time_parts = ['00'] * (3 - len(time_parts)) + time_parts
+    time_parts = [part[:2] for part in time_parts]
+
+    time: str = ':'.join(time_parts)
+    date: str = f'{year[:4]}:{month[:2]}:{day[:2]}'
+
+    return date, time

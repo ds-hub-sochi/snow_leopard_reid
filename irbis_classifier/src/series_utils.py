@@ -2,11 +2,16 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import pandas as pd
+import torch
 from PIL import Image
 from tqdm import tqdm
+from transformers import AutoModel, AutoTokenizer, logging
+
+
+logging.set_verbosity_error()
 
 
 DATE_COLUMN = 'date'
@@ -94,21 +99,58 @@ def process_pattern_match_by_regexp(
     return datetime
 
 
-def parse_date(path_to_file: Path) -> str | None:
-    date: str | None = get_date_from_exif(path_to_file)
-    if not date:
-        date = get_date_from_name(path_to_file)
+class DateParser:
+    def __init__(
+        self,
+        ocr_model,
+        ocr_tokenzier,
+    ):
+        self._ocr_model = ocr_model
+        self._ocr_tokenizer = ocr_tokenzier
 
-    return date
+    def parse_date(self, path_to_file: Path) -> str | None:
+        date: str | None = get_date_from_exif(path_to_file)
+
+        if not date:
+            date = get_date_from_name(path_to_file)
+
+            if not date:
+                date = get_date_and_time_using_ocr(
+                    self._ocr_model,
+                    self._ocr_tokenizer,
+                    path_to_file,
+                )
+        return date
 
 
 def add_series_info(
     df: pd.DataFrame,
     series_timedelta: str = '1 hour',
 ) -> pd.DataFrame:
+    device: torch.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    ocr_tokenizer: AutoTokenizer = AutoTokenizer.from_pretrained(
+        'ucaslcl/GOT-OCR2_0',
+        trust_remote_code=True,
+    )
+
+    ocr_model: AutoModel = AutoModel.from_pretrained(
+        'ucaslcl/GOT-OCR2_0',
+        trust_remote_code=True,
+        low_cpu_mem_usage=True,
+        device_map=device,
+        use_safetensors=True,
+        pad_token_id=ocr_tokenizer.eos_token_id,  # type: ignore
+    ).eval().to(device)
+
+    date_parser: DateParser = DateParser(
+        ocr_model=ocr_model,
+        ocr_tokenzier=ocr_tokenizer,
+    )
+
     # find date of creation for each image
     df[DATE_COLUMN] = pd.to_datetime(
-        df[PATHS_COLUMN].apply(parse_date),
+        df[PATHS_COLUMN].apply(date_parser.parse_date),
         format='%Y:%m:%d %H:%M:%S',  # noqa: WPS323 the only format is strftime
         errors='coerce',
     )
@@ -126,9 +168,12 @@ def add_series_info(
     # counter to mark series and add max series value per individual (specie) and + 1
     # (because range start from 0 till n-1)
     for individual in df_without_exif_dates[CLASS_NAME_COLUMN].unique():
-        series_max_value: int = max(
-            df_with_series.loc[df_with_series[INDIVIDUAL_NAME_COLUMN] == individual, SEQUENCE_COLUMN].values,
-        )
+        if df_with_series.loc[df_with_series[INDIVIDUAL_NAME_COLUMN] == individual, SEQUENCE_COLUMN].shape[0] == 0:
+            series_max_value: int = 0
+        else:
+            series_max_value = max(
+                df_with_series.loc[df_with_series[INDIVIDUAL_NAME_COLUMN] == individual, SEQUENCE_COLUMN].values,
+            )
 
         df_without_exif_dates.loc[df_without_exif_dates[INDIVIDUAL_NAME_COLUMN] == individual, SEQUENCE_COLUMN] = [
             idx + series_max_value + 1
@@ -167,42 +212,45 @@ def find_series_per_individual(
     return pd.concat(df_with_series_list)
 
 
-def get_date_and_time_from_ocr(
+def get_date_and_time_using_ocr(
     model,
     tokenizer,
     filepath: Path,
-) -> tuple[str, str]:
-    ocr_result: str = model.chat(tokenizer, str(filepath), ocr_type='ocr')
-    ocr_parts: list[str] = ocr_result.split(' ')
-    match len(ocr_parts):
-        case 1:
-            date_and_time: str = ocr_parts[0]
-        case 2:
-            date_and_time = ocr_parts[0]
-        case _:
-            date_and_time = ocr_parts[1]
+) -> Optional[str]:
+    try:  # pylint: disable=too-many-try-statements
+        ocr_result: str = model.chat(tokenizer, str(filepath), ocr_type='ocr')
+        ocr_parts: list[str] = ocr_result.split(' ')
+        match len(ocr_parts):
+            case 1:
+                date_and_time: str = ocr_parts[0]
+            case 2:
+                date_and_time = ocr_parts[0]
+            case _:
+                date_and_time = ocr_parts[1]
 
-    date_and_time_parts: list[str] = re.split('/|:', date_and_time)
+        date_and_time_parts: list[str] = re.split('/|:', date_and_time)
 
-    date_parts: list[str] = date_and_time_parts[:3]
-    date_parts[-1] = date_parts[-1][:-2]
+        date_parts: list[str] = date_and_time_parts[:3]
+        date_parts[-1] = date_parts[-1][:-2]
 
-    if len(date_parts[0]) == 4:
-        year, month, day = date_parts
-    else:
-        day, month, year = date_parts
-        if int(month) > 12:
-            day, month = month, day
+        if len(date_parts[0]) == 4:
+            year, month, day = date_parts
+        else:
+            day, month, year = date_parts
+            if int(month) > 12:
+                day, month = month, day
 
-    time_parts: list[str] = date_and_time_parts[2:]
-    time_parts[0] = time_parts[0][-2:]
+        time_parts: list[str] = date_and_time_parts[2:]
+        time_parts[0] = time_parts[0][-2:]
 
-    # sometimes logo blocks the content so let's assume that an event has as early timing as possible
-    if len(time_parts) < 3:
-        time_parts = ['00'] * (3 - len(time_parts)) + time_parts
-    time_parts = [part[:2] for part in time_parts]
+        # sometimes logo blocks the content so let's assume that an event has as early timing as possible
+        if len(time_parts) < 3:
+            time_parts = ['00'] * (3 - len(time_parts)) + time_parts
+        time_parts = [part[:2] for part in time_parts]
 
-    time: str = ':'.join(time_parts)
-    date: str = f'{year[:4]}:{month[:2]}:{day[:2]}'
+        time: str = ':'.join(time_parts)
+        date: str = f'{year[:4]}:{month[:2]}:{day[:2]}'
 
-    return date, time
+        return f'{date} {time}'
+    except:  # pylint: disable=bare-except  # noqa: E722
+        return None

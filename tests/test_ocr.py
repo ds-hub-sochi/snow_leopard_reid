@@ -4,7 +4,7 @@ import pytest
 from transformers import AutoModel, AutoTokenizer
 import torch
 
-from irbis_project.src.series_utils import get_date_and_time_from_ocr
+from irbis_classifier.src.series_utils import get_date_and_time_using_ocr
 
 
 device: torch.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -72,7 +72,13 @@ def test_ocr_correctness(
     """
     See https://huggingface.co/stepfun-ai/GOT-OCR2_0
     """
-    date, time = get_date_and_time_from_ocr(model, tokenizer, filepath)
+    date: str = get_date_and_time_using_ocr(
+        model,
+        tokenizer,
+        filepath,
+    )
+
+    date, time = date.split(' ')
 
     assert date == expected_date
     assert time == expected_time

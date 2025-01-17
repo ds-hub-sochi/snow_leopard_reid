@@ -9,9 +9,9 @@ import click
 import pandas as pd
 from loguru import logger
 
-from irbis_project.src.constants import FIRST_STAGE_UNIFICATION_MAPPER, FIRST_STAGE_INDEX_MAPPER
-from irbis_project.src.utils import filter_non_images, fix_rus_i_naming
-from irbis_project.src.series_utils import add_series_info
+from irbis_classifier.src.constants import FIRST_STAGE_UNIFICATION_MAPPER, FIRST_STAGE_INDEX_MAPPER
+from irbis_classifier.src.utils import filter_non_images, fix_rus_i_naming
+from irbis_classifier.src.series_utils import add_series_info
 
 
 def drop_blacklist_photos(

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-PATH_TO_NOOBF_DATA = Path(__file__).parent.parent / 'data/result/no_obfuscation'
+
 FIRST_STAGE_UNIFICATION_MAPPER = {
     "Бурый медведь": "Медведь",
     "Гималайский медведь": "Медведь",
@@ -32,6 +32,3 @@ FIRST_STAGE_UNIFICATION_MAPPER = {
 }
 
 FIRST_STAGE_INDEX_MAPPER = {cls_name: idx for idx, cls_name in enumerate(['Заяц', 'Кабан', 'Кошки', 'Куньи', 'Медведь', 'Оленевые', 'Пантеры', 'Полорогие', 'Собачие', 'Сурок'])}
-
-SIZE_IMAGES_RESIZED = (1920, 1080)
-SIZE_CROP = (0, 30, 1920, 1020)

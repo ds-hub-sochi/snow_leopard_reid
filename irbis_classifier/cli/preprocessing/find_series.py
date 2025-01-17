@@ -2,6 +2,8 @@
 Скрипт, в котором мы вытаскиваем информацию о сериях в фотографиях, чтобы
 затем можно было сделать сплит по сериям и не допустить лика.
 """
+from __future__ import annotations
+
 import os
 from pathlib import Path
 
@@ -9,7 +11,7 @@ import click
 import pandas as pd
 from loguru import logger
 
-from irbis_classifier.src.constants import FIRST_STAGE_UNIFICATION_MAPPER, FIRST_STAGE_INDEX_MAPPER
+from irbis_classifier.src.constants import UNIFICATION_MAPPING, CLASSES_TO_USE, LABEL_TO_INDEX
 from irbis_classifier.src.utils import filter_non_images, fix_rus_i_naming
 from irbis_classifier.src.series_utils import add_series_info
 
@@ -40,6 +42,27 @@ def drop_blacklist_photos(
     return df.reset_index(drop=True)
 
 
+class LabelFilter:
+    def __init__(
+        self,
+        unification_mapping: dict[str, str],
+        supported_labels: set[str],
+    ):
+        self._unification_mapping: dict[str, str] = unification_mapping
+        self._supported_labels: set[str] = supported_labels
+
+    def __call__(
+        self,
+        label: str
+    ) -> str | None:
+        label = self._unification_mapping.get(label, label)
+
+        if label not in self._supported_labels:
+            return None
+
+        return label
+
+
 def construct_series(
     path_to_data_dir: Path,
 ) -> pd.DataFrame:
@@ -58,12 +81,19 @@ def construct_series(
     #     df = drop_blacklist_photos(df, path_to_data_dir)
 
     df['specie'] = df['specie'].apply(fix_rus_i_naming)
+
     # Делаем маппинг в классы более высокого уровня, отчищаем от тех, что не учтены в маппере
-    df['unified_class'] = df['specie'].map(FIRST_STAGE_UNIFICATION_MAPPER)
+    label_filter: LabelFilter = LabelFilter(
+        unification_mapping=UNIFICATION_MAPPING,
+        supported_labels=CLASSES_TO_USE,
+    )
+
+    df['unified_class'] = df['specie'].map(label_filter)
     df = df[df['unified_class'].notna()]
+    # df = df[df['unified_class'] is not None]
     # Трансформируем классы более высокого уровня в числовые индексы и удаляем то, не учтено в маппере
     # Например: колонок (2 фото) и собачьи (66 фото).
-    df['class_id'] = df['unified_class'].map(FIRST_STAGE_INDEX_MAPPER)
+    df['class_id'] = df['unified_class'].map(LABEL_TO_INDEX)
     df = df[df['class_id'].notna()].reset_index(drop=True)
 
     return df

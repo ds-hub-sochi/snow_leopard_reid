@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 import torch
@@ -216,7 +216,7 @@ def get_date_and_time_using_ocr(
     model,
     tokenizer,
     filepath: Path,
-) -> Optional[str]:
+) -> str | None:
     try:  # pylint: disable=too-many-try-statements
         ocr_result: str = model.chat(tokenizer, str(filepath), ocr_type='ocr')
         ocr_parts: list[str] = ocr_result.split(' ')

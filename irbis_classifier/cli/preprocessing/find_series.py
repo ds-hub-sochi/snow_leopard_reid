@@ -113,6 +113,7 @@ def find_series(path_to_data: str) -> None:
             repository_root_dir / 'data' / 'interim' / 'stage_with_series' / f'df_{stage}.csv',
             index=False,
         )
+        logger.success(f'ended with {stage}')
 
 
 if __name__ == '__main__':

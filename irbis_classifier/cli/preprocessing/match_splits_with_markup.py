@@ -46,7 +46,7 @@ def add_markup(
                     markup_parts: list[str] = markup_line.split(' ')
                     if float(markup_parts[-1]) > min_relative_size and float(markup_parts[-2]) > min_relative_size:
                         dict_with_markup['path'].append(current_series.path)
-                        dict_with_markup['specie'].append(current_series.specie)
+                        dict_with_markup['specie'].append(current_series.unified_class)
                         dict_with_markup['x_center'].append(str(float(markup_parts[-4])))
                         dict_with_markup['y_center'].append(str(float(markup_parts[-3])))
                         dict_with_markup['width'].append(str(float(markup_parts[-2])))

@@ -13,7 +13,7 @@ from PIL import Image
 
 @click.command()
 @click.option('--path_to_data', type=click.Path(exists=True), help='The path to the data directory')
-def add_data(path_to_data: str | Path) -> None:
+def add_data(path_to_data: str | Path) -> None:  # noqa: R0914
     repository_root_dir: Path = Path(__file__).parent.parent.parent.parent.resolve()
 
     next_stage_index: int = len(glob(str(repository_root_dir / 'data' / 'raw' / 'full_images' / '*'))) + 1
@@ -25,9 +25,7 @@ def add_data(path_to_data: str | Path) -> None:
 
     path_to_data = Path(path_to_data).resolve()
 
-    labels: list[str] = [path.split('/')[-1] for path in glob(str(path_to_data / 'images' / '*'))]
-
-    for label in labels:
+    for label in [path.split('/')[-1] for path in glob(str(path_to_data / 'images' / '*'))]:
         for subdir in ('full_images', 'detection_labels'):
             (repository_root_dir / 'data' / 'raw' / subdir / f'stage_{next_stage_index}' / label).mkdir(
                 exist_ok=True,
@@ -45,8 +43,8 @@ def add_data(path_to_data: str | Path) -> None:
             else:
                 image_height, image_width, _ = np.array(Image.open(images_path)).shape
 
-                tree = ElementTree.parse(path_to_data / 'markup' / label / f'{filename}.xml')
-                root = tree.getroot()
+                root = ElementTree.parse(path_to_data / 'markup' / label / f'{filename}.xml').getroot()
+                # root = tree.getroot()
 
                 objects = []
 

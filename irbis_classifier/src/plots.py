@@ -16,7 +16,7 @@ def create_classes_pie_plot(
     df: pd.DataFrame,
     title: str,
     show: bool,
-    filename: str | None = None,
+    filename: Path | None,
 ) -> None:
     logger.info(f"creating pie plot for the {filename} split")
 
@@ -40,47 +40,48 @@ def create_classes_pie_plot(
             plt.show()
 
         if filename is not None:
-            repository_root_dir: Path = Path(__file__).parent.parent.parent.resolve()
-
-            save_dir: Path = repository_root_dir / 'reports' / 'figures' / 'classes_proportions'
-            save_dir.mkdir(
-                exist_ok=True,
-                parents=True,
-            )
-
-            plt.savefig(save_dir / f'{filename[:-4]}.png')
+            plt.savefig(f'{str(filename)[:-4]}.png')
 
 
 def create_pie_plots_over_split(
+    data_dir: Path | str,
     show: bool,
     save: bool,
+    save_dir: Path | str | None,
 ) -> None:
     logger.info('pie plots over split creation is started')
     if not show and not save:
         logger.warning("pie plot is cancelled due to False value in both 'save' and 'show' options")
         return
 
-    repository_root_dir: Path = Path(__file__).parent.parent.parent.resolve()
+    data_dir = Path(data_dir).resolve()
 
-    data_dir: Path = repository_root_dir / 'data' / 'processed'
-
-    splits: list[str] = [f.path.split('/')[-1] for f in os.scandir(data_dir) if Path(data_dir).is_dir()]
+    splits: list[str] = [f.path.split('/')[-1] for f in os.scandir(data_dir) if data_dir.is_dir()]
     splits = [split for split in splits if split.endswith('csv')]
+
+    if save and save_dir is not None:
+        save_dir = Path(save_dir).resolve()
+        save_dir.mkdir(
+            exist_ok=True,
+            parents=True,
+        )
 
     for split in splits:
         create_classes_pie_plot(
             pd.read_csv(data_dir / split),
             f'Соотношение классов в {split[:-4]} выборке',
             show=show,
-            filename=split if save else None,
+            filename=save_dir / split if save else None,
         )
 
     logger.success("pie plots are created")
 
 
 def create_classes_difference_over_split(
+    data_dir: Path | str,
     show: bool,
     save: bool,
+    save_dir: Path | str | None,
 ) -> None:
     # based on
     # https://matplotlib.org/stable/gallery/lines_bars_and_markers/barchart.html#sphx-glr-gallery-lines-bars-and-markers-barchart-py
@@ -90,11 +91,9 @@ def create_classes_difference_over_split(
         logger.warning("classes difference bar plot is cancelled due to False value in both 'save' and 'show' options")
         return
 
-    repository_root_dir: Path = Path(__file__).parent.parent.parent.resolve()
+    data_dir = Path(data_dir).resolve()
 
-    data_dir: Path = repository_root_dir / 'data' / 'processed'
-
-    splits: list[str] = [f.path.split('/')[-1] for f in os.scandir(data_dir) if Path(data_dir).is_dir()]
+    splits: list[str] = [f.path.split('/')[-1] for f in os.scandir(data_dir) if data_dir.is_dir()]
     splits = [split for split in splits if split.endswith('csv')]
 
     labels: set[str] = set()
@@ -137,21 +136,22 @@ def create_classes_difference_over_split(
             )
             multiplier += 1
 
-        # Add some text for labels, title and custom x-axis tick labels, etc.
-        ax.set_ylabel('Количество кропов')
         ax.set_title('Соотношение данных по классам в обучающей/валидационной/тестовой выборке')
+        ax.set_ylabel('Количество кропов')
+        ax.set_xlabel('Вид')
+
         ax.set_xticks(x + width)
         ax.set_xticklabels(
             sorted(list(labels)),
             rotation=45,
         )
+
         ax.legend(loc='upper left')
 
         ax.grid(
             linewidth=0.75,
             zorder=0,
         )
-
         ax.grid(
             which="minor",
             linewidth=0.50,
@@ -162,8 +162,8 @@ def create_classes_difference_over_split(
         if show:
             plt.show()
 
-        if save:
-            save_dir: Path = repository_root_dir / 'reports' / 'figures' / 'classes_difference_over_split'
+        if save and save_dir is not None:
+            save_dir = Path(save_dir).resolve()
             save_dir.mkdir(
                 exist_ok=True,
                 parents=True,
@@ -183,6 +183,10 @@ def create_bar_plot_over_stages(
     # based ob
     # https://matplotlib.org/stable/gallery/lines_bars_and_markers/bar_stacked.html
     logger.info("stacked bar plot with stages split creation was started")
+
+    if not show and not save:
+        logger.warning("classes difference bar plot is cancelled due to False value in both 'save' and 'show' options")
+        return
 
     data_dir = Path(data_dir).resolve()
 
@@ -227,7 +231,6 @@ def create_bar_plot_over_stages(
         ax.set_title("Распределение количества кропов с видом по stage'ам")
         ax.set_ylabel('Количество кропов')
         ax.set_xlabel('Вид')
-        ax.legend(loc="upper right")
 
         ax.set_xticks(np.arange(len(species)))
         ax.set_xticklabels(
@@ -235,11 +238,12 @@ def create_bar_plot_over_stages(
             rotation=45,
         )
 
+        ax.legend(loc="upper right")
+
         ax.grid(
             linewidth=0.75,
             zorder=0,
         )
-
         ax.grid(
             which="minor",
             linewidth=0.50,

@@ -11,6 +11,18 @@ import seaborn as sns
 from loguru import logger
 from matplotlib import pyplot as plt
 
+SMALL_SIZE: int = 12
+MEDIUM_SIZE: int = 16
+BIGGER_SIZE: int = 20
+
+plt.rc('font', size=SMALL_SIZE)
+plt.rc('axes', titlesize=SMALL_SIZE)
+plt.rc('axes', labelsize=MEDIUM_SIZE)
+plt.rc('xtick', labelsize=SMALL_SIZE)
+plt.rc('ytick', labelsize=SMALL_SIZE)
+plt.rc('legend', fontsize=SMALL_SIZE)
+plt.rc('figure', titlesize=BIGGER_SIZE)
+
 
 def create_classes_pie_plot(
     df: pd.DataFrame,
@@ -34,7 +46,10 @@ def create_classes_pie_plot(
             sizes,
             labels=labels,
         )
-        plt.title(title)
+        plt.title(
+            title,
+            fontdict={'fontsize': BIGGER_SIZE},
+        )
 
         if show:
             plt.show()
@@ -136,7 +151,10 @@ def create_classes_difference_over_split(
             )
             multiplier += 1
 
-        ax.set_title('Соотношение данных по классам в обучающей/валидационной/тестовой выборке')
+        ax.set_title(
+            'Соотношение данных по видам в выборках',
+            fontdict={'fontsize': BIGGER_SIZE},
+        )
         ax.set_ylabel('Количество кропов')
         ax.set_xlabel('Вид')
 
@@ -228,7 +246,10 @@ def create_bar_plot_over_stages(
             )
             bottom += weight_count
 
-        ax.set_title("Распределение количества кропов с видом по stage'ам")
+        ax.set_title(
+            "Распределение количества кропов для вида по stage'ам",
+            fontdict={'fontsize': BIGGER_SIZE},
+        )
         ax.set_ylabel('Количество кропов')
         ax.set_xlabel('Вид')
 

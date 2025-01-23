@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from collections import defaultdict
+from glob import glob
 from pathlib import Path
 
 import numpy as np
@@ -66,16 +67,10 @@ def create_pie_plots_over_split(
     splits: list[str] = [f.path.split('/')[-1] for f in os.scandir(data_dir) if Path(data_dir).is_dir()]
     splits = [split for split in splits if split.endswith('csv')]
 
-    english_label_to_russian: dict[str, str] = {
-        'train': 'обучающей',
-        'val': 'валидационной',
-        'test': 'тестовой',
-    }
-
     for split in splits:
         create_classes_pie_plot(
             pd.read_csv(data_dir / split),
-            f'Соотношение классов в {english_label_to_russian[split[:-4]]} выборке',
+            f'Соотношение классов в {split[:-4]} выборке',
             show=show,
             filename=split if save else None,
         )
@@ -177,3 +172,91 @@ def create_classes_difference_over_split(
             plt.savefig(save_dir / 'classes_difference.png')
 
     logger.success('bar plot is created')
+
+
+def create_bar_plot_over_stages(
+    data_dir: Path | str,
+    show: bool,
+    save: bool,
+    save_dir: Path | str | None,
+):
+    # based ob
+    # https://matplotlib.org/stable/gallery/lines_bars_and_markers/bar_stacked.html
+    logger.info("stacked bar plot with stages split creation was started")
+
+    data_dir = Path(data_dir).resolve()
+
+    splits: list[str] = [pd.read_csv(path) for path in glob(str(data_dir / '*'))]
+    cumulative_df: pd.DataFrame = pd.concat(
+        splits,
+        ignore_index=True,
+        axis=0,
+    )
+
+    species: list[str] = sorted(list(set(cumulative_df.specie)))
+    stages: list[int] = sorted([int(stage) for stage in list(set(cumulative_df.stage))])
+
+    weight_counts: dict[str, np.array] = {}
+    with sns.color_palette(
+        "deep",
+        len(stages),
+    ):
+        for stage in stages:
+            current_stage_weights: list[int] = []
+            stage_subdf: pd.DataFrame = cumulative_df[cumulative_df.stage == stage]
+            for specie in species:
+                current_stage_weights.append(stage_subdf[stage_subdf.specie == specie].shape[0])
+
+            weight_counts[f'stage_{stage}'] = np.array(current_stage_weights)
+
+        figure, ax = plt.subplots(figsize=(len(species), 8))
+        figure.subplots_adjust(bottom=0.2)
+        bottom = np.zeros(len(species))
+
+        for stage, weight_count in weight_counts.items():
+            _ = ax.bar(
+                species,
+                weight_count,
+                0.5,
+                label=stage,
+                bottom=bottom,
+                zorder=3,
+            )
+            bottom += weight_count
+
+        ax.set_title("Распределение количества кропов с видом по stage'ам")
+        ax.set_ylabel('Количество кропов')
+        ax.set_xlabel('Вид')
+        ax.legend(loc="upper right")
+
+        ax.set_xticks(np.arange(len(species)))
+        ax.set_xticklabels(
+            species,
+            rotation=45,
+        )
+
+        ax.grid(
+            linewidth=0.75,
+            zorder=0,
+        )
+
+        ax.grid(
+            which="minor",
+            linewidth=0.50,
+            zorder=0,
+        )
+        ax.minorticks_on()
+
+        if show:
+            plt.show()
+
+        if save and save_dir is not None:
+            save_dir = Path(save_dir).resolve()
+            save_dir.mkdir(
+                exist_ok=True,
+                parents=True,
+            )
+
+            plt.savefig(save_dir / 'stage_stacked_barplot.png')
+
+        logger.success('stacked bar plot was created')

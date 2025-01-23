@@ -1,3 +1,4 @@
+import re
 import pathlib
 from glob import glob
 
@@ -26,6 +27,7 @@ def add_markup(
             'y_center': [],
             'width': [],
             'height': [],
+            'stage': [],
         }
 
         for loc_index in range(current_df.shape[0]):
@@ -51,6 +53,12 @@ def add_markup(
                         dict_with_markup['y_center'].append(str(float(markup_parts[-3])))
                         dict_with_markup['width'].append(str(float(markup_parts[-2])))
                         dict_with_markup['height'].append(str(float(markup_parts[-1])))
+
+                        stage: str = re.findall(
+                            r'stage\_[0-9]+',
+                            current_series.path,
+                        )[0][6:]
+                        dict_with_markup['stage'].append(stage)
                     else:
                         logger.warning(f'Skipped b-box for an image: {current_series.path}')
 

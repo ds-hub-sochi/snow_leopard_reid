@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import re
 from glob import glob
 from pathlib import Path
 
@@ -7,36 +10,46 @@ import pandas as pd
 from loguru import logger
 
 
-def split_and_save(
-    repository_root_dir: Path,
+def split_and_save(  # pylint: disable=too-many-locals
+    path_to_markup_dir: Path,
     stage_files_pathes: list[str],
     dir_to_save: Path,
     train_size: float,
     val_size: float,
 ) -> None:
-    def check_markup_existance(filespath: str) -> bool:
-        parts: list[str] = filespath.split('/')
-        stage, label, filename = parts[-3:]
-        filename = '.'.join(filename.split('.')[:-1])
+    class MarkupExistanceChecker:
+        def __init__(
+            self,
+            path_to_markup_dir: Path,
+        ):
+            self._path_to_markup_dir: Path = path_to_markup_dir
 
-        markup_filepath = repository_root_dir / \
-            '/'.join(parts[:-4]) / 'detection_labels' / stage / label / f'{filename}.txt'
+        def check_markup_existance(
+            self,
+            filespath: str,
+        ) -> bool:
+            parts: list[str] = filespath.split('/')
+            stage, label, filename = parts[-3:]
+            filename = '.'.join(filename.split('.')[:-1])
 
-        if not Path.is_file(markup_filepath):
-            logger.warning(f"Markup for {stage}/{label}/{filename} wasn't found")
-            return False
+            markup_filepath = path_to_markup_dir / stage / label / f'{filename}.txt'
 
-        return True
+            if not Path.is_file(markup_filepath):
+                logger.warning(f"markup for {stage}/{label}/{filename} wasn't found")
+                return False
 
-    dir_to_save.mkdir(parents=True, exist_ok=True)
+            return True
 
     train_df: pd.DataFrame = pd.DataFrame()
     val_df: pd.DataFrame = pd.DataFrame()
     test_df: pd.DataFrame = pd.DataFrame()
 
+    markup_existance_checker: MarkupExistanceChecker = MarkupExistanceChecker(path_to_markup_dir)
+
     for stage_file in stage_files_pathes:
+        logger.info(f"processing stage #{re.findall(r'[0-9]+', stage_file.split('/')[-1])[0]}")
         current_df: pd.DataFrame = pd.read_csv(stage_file)
-        current_df = current_df[current_df.path.apply(check_markup_existance)]
+        current_df = current_df[current_df.path.apply(markup_existance_checker.check_markup_existance)]
 
         for specie in sorted(list(set(current_df.specie))):
             specie_subdf: pd.DataFrame = current_df[current_df.specie == specie]
@@ -76,30 +89,59 @@ def split_and_save(
             test_df = pd.concat([test_df, specie_subdf.loc[np.array(split_indexes)]])
 
     logger.info(f'train size: {train_df.shape[0]}')
-    train_df.to_csv(dir_to_save / "train.csv", index=False)
+    train_df.to_csv(
+        dir_to_save / 'train.csv',
+        index=False,
+    )
 
     logger.info(f'val size: {val_df.shape[0]}')
-    val_df.to_csv(dir_to_save / 'val.csv', index=False)
+    val_df.to_csv(
+        dir_to_save / 'val.csv',
+        index=False,
+    )
 
-    logger.info(f"test size: {test_df.shape[0]}")
-    test_df.to_csv(dir_to_save / 'test.csv', index=False)
+    logger.info(f'test size: {test_df.shape[0]}')
+    test_df.to_csv(
+        dir_to_save / 'test.csv',
+        index=False,
+    )
 
     logger.success('train/val/test split ended')
 
 
 @click.command()
+@click.option(
+    '--path_to_dir_with_stages',
+    type=click.Path(exists=True),
+    help='The path to the directory that contains stages',
+)
+@click.option('--path_to_markup_dir', type=click.Path(exists=True), help='The path to the markup directory')
+@click.option('--path_to_save_dir', type=click.Path(), help='The path to the data directory')
 @click.option('--train_size', default=0.60, help='Train subpart relative size')
 @click.option('--val_size', default=0.20, help='Validation subpart relative size')
-def run_split(train_size: float, val_size: float) -> None:
-    repository_root_dir: Path = Path(__file__).parent.parent.parent.parent.resolve()
-    stage_files: list[str] = sorted(
-        glob(str(repository_root_dir / 'data' / 'interim' / 'stage_with_series' / '*.csv'))
+def run_split(
+    path_to_dir_with_stages: Path | str,
+    path_to_markup_dir: Path | str,
+    path_to_save_dir: Path | str,
+    train_size: float,
+    val_size: float,
+) -> None:
+    path_to_dir_with_stages = Path(path_to_dir_with_stages).resolve()
+    path_to_markup_dir = Path(path_to_markup_dir).resolve()
+
+    path_to_save_dir = Path(path_to_save_dir).resolve()
+    path_to_save_dir.mkdir(
+        exist_ok=True,
+        parents=True,
     )
 
+    stage_files: list[str] = sorted(glob(str(path_to_dir_with_stages / '*.csv')))
+    logger.info(f'found {len(stage_files)} stage files')
+
     split_and_save(
-        repository_root_dir,
+        path_to_markup_dir,
         stage_files,
-        repository_root_dir / 'data' / 'interim' / 'train_val_test_split',
+        path_to_save_dir,
         train_size=train_size,
         val_size=val_size,
     )

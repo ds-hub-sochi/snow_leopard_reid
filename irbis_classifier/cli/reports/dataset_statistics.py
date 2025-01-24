@@ -2,37 +2,46 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import click
+
 from irbis_classifier.src.plots import (
     create_pie_plots_over_split,
-    create_classes_difference_over_split,
-    create_bar_plot_over_stages,
+    create_classes_difference_bar_plot_over_split,
+    create_classes_bar_plot_over_stages,
 )
 
 
-def collect_figures():
-    repository_root_dir: Path = Path(__file__).parent.parent.parent.parent.resolve()
+@click.command()
+@click.option('--path_to_data_dir', type=click.Path(exists=True), help='The path to the data directory')
+@click.option('--path_to_save_dir', type=click.Path(), help='The path to the data directory')
+def collect_figures(
+    path_to_data_dir: Path | str,
+    path_to_save_dir: Path | str,
+):
+    path_to_data_dir = Path(path_to_data_dir).resolve()
+    path_to_save_dir = Path(path_to_save_dir).resolve()
 
     create_pie_plots_over_split(
-        repository_root_dir / 'data' / 'processed',
+        path_to_data_dir,
         False,
         True,
-        repository_root_dir / 'reports' / 'figures' / 'splits_classes_distribution',
+        path_to_save_dir / 'splits_classes_distribution',
     )
 
-    create_classes_difference_over_split(
-        repository_root_dir / 'data' / 'processed',
+    create_classes_difference_bar_plot_over_split(
+        path_to_data_dir,
         False,
         True,
-        repository_root_dir / 'reports' / 'figures',
+        path_to_save_dir,
     )
 
-    create_bar_plot_over_stages(
-        repository_root_dir / 'data' / 'processed',
+    create_classes_bar_plot_over_stages(
+        path_to_data_dir,
         False,
         True,
-        repository_root_dir / 'reports' / 'figures',
+        path_to_save_dir,
     )
 
 
 if __name__ == '__main__':
-    collect_figures()
+    collect_figures()  # pylint: disable=no-value-for-parameter

@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from loguru import logger
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, rcParams
 
 SMALL_SIZE: int = 12
 MEDIUM_SIZE: int = 16
@@ -22,6 +22,7 @@ plt.rc('xtick', labelsize=SMALL_SIZE)
 plt.rc('ytick', labelsize=SMALL_SIZE)
 plt.rc('legend', fontsize=SMALL_SIZE)
 plt.rc('figure', titlesize=BIGGER_SIZE)
+rcParams.update({'figure.autolayout': True})
 
 
 def create_classes_pie_plot(
@@ -30,12 +31,10 @@ def create_classes_pie_plot(
     show: bool,
     filename: Path | None,
 ) -> None:
-    logger.info(f"creating pie plot for the {filename} split")
-
     unique_species: list[str] = sorted(list(set(df.specie)))
 
     with sns.color_palette(
-        "deep",
+        'deep',
         len(unique_species),
     ):
         labels = unique_species
@@ -89,10 +88,10 @@ def create_pie_plots_over_split(
             filename=save_dir / split if save else None,
         )
 
-    logger.success("pie plots are created")
+    logger.success('pie plots were created')
 
 
-def create_classes_difference_over_split(
+def create_classes_difference_bar_plot_over_split(
     data_dir: Path | str,
     show: bool,
     save: bool,
@@ -100,7 +99,7 @@ def create_classes_difference_over_split(
 ) -> None:
     # based on
     # https://matplotlib.org/stable/gallery/lines_bars_and_markers/barchart.html#sphx-glr-gallery-lines-bars-and-markers-barchart-py
-    logger.info("bar plot with classes difference creation was started")
+    logger.info('classes differnce bar plot creation was started')
 
     if not show and not save:
         logger.warning("classes difference bar plot is cancelled due to False value in both 'save' and 'show' options")
@@ -127,7 +126,10 @@ def create_classes_difference_over_split(
     width: float = 0.25
     multiplier: int = 0
 
-    with sns.color_palette("deep", len(labels)):
+    with sns.color_palette(
+        'deep',
+        len(labels),
+    ):
         _, ax = plt.subplots(
             layout='constrained',
             figsize=(
@@ -171,7 +173,7 @@ def create_classes_difference_over_split(
             zorder=0,
         )
         ax.grid(
-            which="minor",
+            which='minor',
             linewidth=0.50,
             zorder=0,
         )
@@ -187,12 +189,15 @@ def create_classes_difference_over_split(
                 parents=True,
             )
 
-            plt.savefig(save_dir / 'classes_difference.png')
+            plt.savefig(
+                save_dir / 'classes_difference.png',
+                bbox_inches='tight',
+            )
 
-    logger.success('bar plot is created')
+    logger.success('classes difference bar plot was created')
 
 
-def create_bar_plot_over_stages(
+def create_classes_bar_plot_over_stages(
     data_dir: Path | str,
     show: bool,
     save: bool,
@@ -200,7 +205,7 @@ def create_bar_plot_over_stages(
 ):
     # based ob
     # https://matplotlib.org/stable/gallery/lines_bars_and_markers/bar_stacked.html
-    logger.info("stacked bar plot with stages split creation was started")
+    logger.info('stacked bar plot with stages split creation was started')
 
     if not show and not save:
         logger.warning("classes difference bar plot is cancelled due to False value in both 'save' and 'show' options")
@@ -220,7 +225,7 @@ def create_bar_plot_over_stages(
 
     weight_counts: dict[str, np.array] = {}
     with sns.color_palette(
-        "deep",
+        'deep',
         len(stages),
     ):
         for stage in stages:
@@ -231,8 +236,7 @@ def create_bar_plot_over_stages(
 
             weight_counts[f'stage_{stage}'] = np.array(current_stage_weights)
 
-        figure, ax = plt.subplots(figsize=(len(species), 8))
-        figure.subplots_adjust(bottom=0.2)
+        _, ax = plt.subplots(figsize=(len(species), 8))
         bottom = np.zeros(len(species))
 
         for stage, weight_count in weight_counts.items():
@@ -259,14 +263,14 @@ def create_bar_plot_over_stages(
             rotation=45,
         )
 
-        ax.legend(loc="upper right")
+        ax.legend(loc='upper right')
 
         ax.grid(
             linewidth=0.75,
             zorder=0,
         )
         ax.grid(
-            which="minor",
+            which='minor',
             linewidth=0.50,
             zorder=0,
         )

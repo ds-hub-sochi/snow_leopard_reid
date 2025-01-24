@@ -1,85 +1,30 @@
-project_template
-==============================
+## CLI usage
 
-This repository is a template structure for new projects
+```bash
+python ./irbis_classifier/cli/preprocessing/find_series.py \
+    --path_to_data_dir ./data/raw/full_images \
+    --path_to_save_dir ./data/interim/stage_with_series
+```
 
-Project Organization
-------------
+```bash
+python ./irbis_classifier/cli/preprocessing/train_val_test_split.py \
+    --train_size 0.6 \
+    --val_size 0.2 \
+    --path_to_dir_with_stages ./data/interim/stage_with_series \
+    --path_to_markup_dir ./data/raw/detection_labels \
+    --path_to_save_dir ./data/interim/train_val_test_split  
+```
 
-    ├── LICENSE
-    ├── Makefile                <- Makefile with commands like `make data` or `make train`
-    ├── README.md               <- The top-level README for developers using this project.
-    ├── .pre-commit-config.yaml <- Our pre-commit config file.
-    ├── .pylintrc               <- Our custom .pylintrc file.
-    ├── data
-    │   ├── external            <- Data from third party sources.
-    │   ├── interim             <- Intermediate data that has been transformed.
-    │   ├── processed           <- The final, canonical data sets for modeling.
-    │   └── raw                 <- The original, immutable data dump.
-    │
-    ├── docs                    <- A default Sphinx project; see sphinx-doc.org for details
-    │
-    ├── models                  <- Trained and serialized models, model predictions, or model summaries
-    │
-    ├── notebooks               <- Jupyter notebooks. Naming convention is a number (for ordering),
-    │                              the creator's initials, and a short `-` delimited description, e.g.
-    │                              `1.0-jqp-initial-data-exploration`.
-    │
-    ├── references              <- Data dictionaries, manuals, and all other explanatory materials.
-    │
-    ├── reports                 <- Generated analysis as HTML, PDF, LaTeX, etc.
-    │   └── figures             <- Generated graphics and figures to be used in reporting
-    │
-    ├── requirements.txt        <- The requirements file for reproducing the analysis environment, e.g.
-    │                              generated with `pip freeze > requirements.txt`
-    │
-    ├── setup.py                <- makes project pip installable (pip install -e .) so src can be imported
-    ├── src                     <- Source code for use in this project.
-    │   ├── __init__.py         <- Makes src a Python module
-    │   │
-    │   ├── data                <- Scripts to download or generate data
-    │   │   └── make_dataset.py
-    │   │
-    │   ├── features            <- Scripts to turn raw data into features for modeling
-    │   │   └── build_features.py
-    │   │
-    │   ├── models              <- Scripts to train models and then use trained models to make
-    │   │   │                      predictions
-    │   │   ├── predict_model.py
-    │   │   └── train_model.py
-    │   │
-    │   └── visualization       <- Scripts to create exploratory and results oriented visualizations
-    │       └── visualize.py
-    │
-    └── tox.ini                 <- tox file with settings for running tox; see tox.readthedocs.io
+```bash
+python ./irbis_classifier/cli/preprocessing/match_splits_with_markup.py \
+    --path_to_dir_with_splits ./data/interim/train_val_test_split \
+    --path_to_markup_dir ./data/raw/detection_labels \
+    --path_to_save_dir ./data/processed \
+    --min_relative_size 0.02
+```
 
---------
-
-<p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
-
-Linter checks with pre-commit
-------------
-
-Before committing to the remote repository, the code is checked by linters and autoformatters using the pre-commit module.
-
-1. The precommit is installed using a file requirements.txt , or with the command:
-
-Using pip:
-`pip install pre-commit`
-
-Using homebrew:
-`brew install pre-commit`
-
-Using conda (via conda-forge):
-`conda install -c conda-forge pre-commit`
-
-2. To activate the pre-commit hooks, you need to have the pre-commit module installed and register the following command in the root directory of the project: 
-
-`pre-commit install`
-
-After that, the check will be started automatically with `git commit`
-
-It is recommended to run a pre-commit check separately before committing: 
-
-`pre-commit run --all-files`
-
+```bash
+python ./irbis_classifier/cli/reports/dataset_statistics.py \
+    --path_to_data_dir ./data/processed \
+    --path_to_save_dir ./reports/figures
+```

@@ -17,32 +17,6 @@ from irbis_classifier.src.utils import filter_non_images, fix_rus_i_naming
 from irbis_classifier.src.series_utils import add_series_info
 
 
-def drop_blacklist_photos(
-    df: pd.DataFrame,
-    path_to_data: Path,
-) -> pd.DataFrame:
-    repository_root_dir: Path = Path(__file__).parent.parent.parent.parent.resolve()
-
-    blacklist: list[Path | str] = []
-    with open(repository_root_dir / 'external' / 'blacklist.txt', 'r', encoding='utf-8') as blacklist_file:
-        for line in blacklist_file:
-            line = line.strip()
-            if line:
-                blacklist.append(path_to_data / line)
-
-    for item in blacklist:
-        # Need reverse transform to fix_rus_i_naming, because
-        item = str(item).replace('й', 'й')
-        item = Path(fix_rus_i_naming(str(item)))
-        if item in df['path'].values:
-            logger.info(f"Элемент '{item}' найден в DataFrame и будет удален.")
-            df = df[df['path'] != item]
-        else:
-            raise ValueError(f"No {item} found to delete.")
-
-    return df.reset_index(drop=True)
-
-
 class LabelFilter(Callable[[str], str | None]):  # type: ignore  # pylint: disable=unsupported-binary-operation
     def __init__(
         self,

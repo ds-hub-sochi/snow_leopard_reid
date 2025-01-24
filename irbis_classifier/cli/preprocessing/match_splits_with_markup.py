@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import re
 import pathlib
 from glob import glob
+from pathlib import Path
 
 import click
 import pandas as pd
@@ -9,14 +12,12 @@ from loguru import logger
 
 def add_markup(
     split_files_pathes: list[str],
-    repository_root_dir: pathlib.Path,
+    path_to_save_dir: Path,
+    path_to_markup_dir: Path,
     min_relative_size: float,
 ) -> None:
-    dir_to_save: pathlib.Path = repository_root_dir / 'data' / 'processed'
-    dir_to_save.mkdir(parents=True, exist_ok=True)
-
     for filepath in split_files_pathes:
-        filename: str = filepath.split('/')[-1].split('.')[0]
+        filename: str = '.'.join(filepath.split('/')[-1].split('.')[:-1])
 
         current_df: pd.DataFrame = pd.read_csv(filepath)
 
@@ -37,13 +38,16 @@ def add_markup(
             stage, label, image_filename = parts[-3:]
             image_filename = '.'.join(image_filename.split('.')[:-1])
 
-            markup_filepath: pathlib.Path = repository_root_dir / '/'.join(parts[:-4]) / \
-                f'detection_labels/{stage}/{label}/{image_filename}.txt'
+            markup_filepath: pathlib.Path = path_to_markup_dir / stage / label / f'{image_filename}.txt'
 
             if (not markup_filepath.is_file()):
-                logger.warning(f"Markup for {stage}/{label}/{image_filename} wasn't found")
+                logger.warning(f"markup for {stage}/{label}/{image_filename} wasn't found")
 
-            with open(markup_filepath, 'r', encoding='utf-8') as markup_file:
+            with open(
+                markup_filepath,
+                'r',
+                encoding='utf-8',
+            ) as markup_file:
                 for markup_line in markup_file:
                     markup_parts: list[str] = markup_line.split(' ')
                     if float(markup_parts[-1]) > min_relative_size and float(markup_parts[-2]) > min_relative_size:
@@ -60,23 +64,48 @@ def add_markup(
                         )[0][6:]
                         dict_with_markup['stage'].append(stage)
                     else:
-                        logger.warning(f'Skipped b-box for an image: {current_series.path}')
+                        logger.warning(f'skipped b-box for an image: {current_series.path}')
 
         df_with_markup: pd.DataFrame = pd.DataFrame.from_dict(dict_with_markup)
         logger.info(f'{filename} size: {df_with_markup.shape[0]}')
-        df_with_markup.to_csv(dir_to_save / f'{filename}.csv', index=False)
-    logger.success('Markup matched with train/val/test split')
+
+        df_with_markup.to_csv(
+            path_to_save_dir / f'{filename}.csv',
+            index=False,
+        )
+    logger.success('markup matched with train/val/test split')
 
 
 @click.command()
+@click.option(
+    '--path_to_dir_with_splits',
+    type=click.Path(),
+    help='The path to the directory with train/val/test splits',
+)
+@click.option('--path_to_markup_dir', type=click.Path(exists=True), help='The path to the markup directory')
+@click.option('--path_to_save_dir', type=click.Path(), help='The path to the data directory')
 @click.option('--min_relative_size', default=0.01, help='Bounding box minimal relative height/width')
-def run_matching(min_relative_size: float) -> None:
-    repository_root_dir: pathlib.Path = pathlib.Path(__file__).parent.parent.parent.parent.resolve()
-    filepathes: list[str] = glob(str(repository_root_dir / 'data' / 'interim' / 'train_val_test_split' / '*.csv'))
+def run_matching(
+    path_to_dir_with_splits: Path | str,
+    path_to_markup_dir: Path | str,
+    path_to_save_dir: Path | str,
+    min_relative_size: float,
+) -> None:
+    path_to_dir_with_splits = Path(path_to_dir_with_splits).resolve()
+    path_to_markup_dir = Path(path_to_markup_dir).resolve()
+
+    path_to_save_dir = Path(path_to_save_dir).resolve()
+    path_to_save_dir.mkdir(
+        exist_ok=True,
+        parents=True,
+    )
+
+    splits: list[str] = glob(str(path_to_dir_with_splits / '*.csv'))
 
     add_markup(
-        filepathes,
-        repository_root_dir,
+        splits,
+        path_to_save_dir,
+        path_to_markup_dir,
         min_relative_size,
     )
 

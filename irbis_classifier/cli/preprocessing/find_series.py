@@ -111,6 +111,8 @@ def find_series(
     path_to_data_dir: Path | str,
     path_to_save_dir: Path | str,
 ) -> None:
+    path_to_data_dir = Path(path_to_data_dir).resolve()
+
     path_to_save_dir = Path(path_to_save_dir).resolve()
     path_to_save_dir.mkdir(
         exist_ok=True,

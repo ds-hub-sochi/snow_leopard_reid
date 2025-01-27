@@ -1,4 +1,4 @@
-## CLI usage
+# CLI usage
 
 ```bash
 python ./irbis_classifier/cli/preprocessing/find_series.py \

@@ -110,6 +110,26 @@ class DuplicateOpsProcessor:
 
         return True
 
+    def remove_duplicates_from_markup_file(
+        self,
+        path_to_file: str | Path,
+    ) -> pd.DataFrame:
+        markup_df: pd.DataFrame = pd.read_csv(path_to_file)
+
+        files_to_remove: list[str] = []
+
+        for _, imgs in self.hashes[IMAGES_KW].items():
+            if len(imgs) > 1:
+                files_to_remove.extend(imgs[1:])
+        for _, hashes_dict in self.hashes[VIDEOS_KW].items():
+            for _, videos in hashes_dict.items():
+                if len(videos) > 1:
+                    files_to_remove.extend(videos[1:])
+
+        markup_df = markup_df.query(f'path not in {files_to_remove}')
+
+        return markup_df
+
     def _remove_files(
         self,
         file_paths: list[str],
@@ -162,9 +182,9 @@ class DuplicateFinder:
         n_jobs: int = -1,
     ):
         self.src_dir: Path = Path(src_dir)
-        self.image_hashes: defaultdict[str, list] = defaultdict(list)
-        self.video_hashes: defaultdict[str, defaultdict[str, list]] = defaultdict(lambda: defaultdict(list))
-        self._video_sizes: defaultdict[str, list] = defaultdict(list)
+        self.image_hashes: defaultdict[int | str, list] = defaultdict(list)
+        self.video_hashes: defaultdict[int | str, defaultdict[str, list]] = defaultdict(lambda: defaultdict(list))
+        self._video_sizes: defaultdict[int | str, list] = defaultdict(list)
         self.hash_size: int = hash_size
         self.hf_factor: int = highfreq_factor
         self.n_jobs: int = n_jobs
@@ -248,7 +268,7 @@ class DuplicateFinder:
         else:
             file_paths = list(pd.read_csv(self.src_dir).path)
 
-        file_props = Parallel(n_jobs=self.n_jobs)(
+        file_props: list[tuple[str, str, str] | tuple[str, int, str] | None] = Parallel(n_jobs=self.n_jobs)(
             delayed(self._process_file)(Path(file_path)) for file_path in file_paths
         )
 
@@ -275,13 +295,13 @@ class DuplicateFinder:
             if file_path.suffix.lower() in VALID_IMG_EXTS:
                 file_hash = self.hash_image(file_path)
 
-                return ('image', file_hash, str(file_path))
+                return ('image', file_hash, str(file_path.resolve()))
 
             if file_path.suffix.lower() in VALID_VIDEO_EXTS:
                 file_size = file_path.stat().st_size
 
                 return ('video', file_size, str(file_path))
-        except (ValueError, TypeError) as ex:
+        except (ValueError, TypeError, OSError) as ex:
             logger.error(f'error processing file {file_path}: {ex}')
 
         return None
@@ -307,7 +327,7 @@ class DuplicateFinder:
     def _calculate_video_hashes(self) -> bool:
         """Calculate hashes for video files that have the same size."""
 
-        video_hashes = Parallel(n_jobs=self.n_jobs)(
+        video_hashes: list[tuple[int, str, str]] = Parallel(n_jobs=self.n_jobs)(
             delayed(self._process_video)(file_path, file_size)
             for file_size, file_paths in self._video_sizes.items()
             if len(file_paths) > 1
@@ -315,14 +335,14 @@ class DuplicateFinder:
         )
 
         for file_size, video_hash, file_path in video_hashes:
-            self.video_hashes[file_size][video_hash].append(file_path)
+            self.video_hashes[file_size][video_hash].append(str(Path(file_path).resolve()))
 
         return True
 
 
 def export_dict2json(
     dict_struct: dict[Any, Any],
-    json_path: str,
+    json_path: str | Path,
 ) -> bool:
     """General function to export dict structure to .json file
 

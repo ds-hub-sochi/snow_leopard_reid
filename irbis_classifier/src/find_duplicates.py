@@ -366,21 +366,3 @@ def export_dict2json(
         )
 
     return True
-
-
-if __name__ == '__main__':
-    directory = 'hash_test'
-    finder: DuplicateFinder = DuplicateFinder(directory)
-    img_hashes, video_hashes = finder.find_duplicates()
-
-    export_dict2json(
-        {
-            IMAGES_KW: img_hashes,
-            VIDEOS_KW: video_hashes,
-        },
-        './hashes.json',
-    )
-
-    ops_processor = DuplicateOpsProcessor('./hashes.json')
-    # ops_processor.copy_files_for_manual_check(Path('./duplicates'))
-    ops_processor.remove_duplicates()

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 
 import pytest
@@ -37,7 +39,6 @@ testdata = (
     ("Другие животные", "Другие животные"),
 )
 
-
 @pytest.mark.parametrize("label,expected_unified_label", testdata)
 def test_unification_mapping_supported_classes_only(
     label: str,
@@ -45,8 +46,8 @@ def test_unification_mapping_supported_classes_only(
 ):
     
     label_encoder: LabelEncoder = create_label_encoder(
-        test_dir / 'assets' / 'test_label_encoder'/ 'unification_mapping.json',
-        test_dir / 'assets' / 'test_label_encoder'/ 'supported_classes.json',
+        test_dir / 'assets' / 'test_label_encoder' / 'unification_mapping.json',
+        test_dir / 'assets' / 'test_label_encoder' / 'supported_classes.json',
     )
 
     assert label_encoder.get_unified_label(label) == expected_unified_label
@@ -70,7 +71,6 @@ testdata = (
     ("Собака", "Другие животные"),
 )
 
-
 @pytest.mark.parametrize("label,expected_unified_label", testdata)
 def test_unification_mapping_classes_to_unify_only(
     label: str,
@@ -78,8 +78,8 @@ def test_unification_mapping_classes_to_unify_only(
 ):
     
     label_encoder: LabelEncoder = create_label_encoder(
-        test_dir / 'assets' / 'test_label_encoder'/ 'unification_mapping.json',
-        test_dir / 'assets' / 'test_label_encoder'/ 'supported_classes.json',
+        test_dir / 'assets' / 'test_label_encoder' / 'unification_mapping.json',
+        test_dir / 'assets' / 'test_label_encoder' / 'supported_classes.json',
     )
 
     assert label_encoder.get_unified_label(label) == expected_unified_label
@@ -92,7 +92,6 @@ testdata = (
     ("Коза", None),
 )
 
-
 @pytest.mark.parametrize("label,expected_unified_label", testdata)
 def test_unification_mapping_unsopported_classes_only(
     label: str,
@@ -100,8 +99,8 @@ def test_unification_mapping_unsopported_classes_only(
 ):
     
     label_encoder: LabelEncoder = create_label_encoder(
-        test_dir / 'assets' / 'test_label_encoder'/ 'unification_mapping.json',
-        test_dir / 'assets' / 'test_label_encoder'/ 'supported_classes.json',
+        test_dir / 'assets' / 'test_label_encoder' / 'unification_mapping.json',
+        test_dir / 'assets' / 'test_label_encoder' / 'supported_classes.json',
     )
 
     assert label_encoder.get_unified_label(label) == expected_unified_label
@@ -142,8 +141,8 @@ def test_label_to_index_supported_classes_only(
     expected_index: int,
 ):
     label_encoder: LabelEncoder = create_label_encoder(
-        test_dir / 'assets' / 'test_label_encoder'/ 'unification_mapping.json',
-        test_dir / 'assets' / 'test_label_encoder'/ 'supported_classes.json',
+        test_dir / 'assets' / 'test_label_encoder' / 'unification_mapping.json',
+        test_dir / 'assets' / 'test_label_encoder' / 'supported_classes.json',
     )
 
     assert label_encoder.get_index_by_label(label) == expected_index
@@ -173,8 +172,8 @@ def test_label_to_index_classes_to_unify_only(
     expected_index: int,
 ):
     label_encoder: LabelEncoder = create_label_encoder(
-        test_dir / 'assets' / 'test_label_encoder'/ 'unification_mapping.json',
-        test_dir / 'assets' / 'test_label_encoder'/ 'supported_classes.json',
+        test_dir / 'assets' / 'test_label_encoder' / 'unification_mapping.json',
+        test_dir / 'assets' / 'test_label_encoder' / 'supported_classes.json',
     )
 
     assert label_encoder.get_index_by_label(label) == expected_index
@@ -194,8 +193,8 @@ def test_label_to_index_upsupported_classes_only(
     expected_index: int,
 ):
     label_encoder: LabelEncoder = create_label_encoder(
-        test_dir / 'assets' / 'test_label_encoder'/ 'unification_mapping.json',
-        test_dir / 'assets' / 'test_label_encoder'/ 'supported_classes.json',
+        test_dir / 'assets' / 'test_label_encoder' / 'unification_mapping.json',
+        test_dir / 'assets' / 'test_label_encoder' / 'supported_classes.json',
     )
 
     assert label_encoder.get_index_by_label(label) == expected_index

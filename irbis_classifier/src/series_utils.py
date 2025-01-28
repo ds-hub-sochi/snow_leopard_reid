@@ -7,7 +7,6 @@ from typing import Any
 import pandas as pd
 import torch
 from PIL import Image
-from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer, logging
 
 
@@ -203,7 +202,7 @@ def find_series_per_individual(
 ) -> pd.DataFrame:
     df_with_series_list: list[pd.DataFrame] = []
 
-    for individual in tqdm(individuals):
+    for individual in individuals:
         individual_df: pd.DataFrame = df_with_exif_dates[df_with_exif_dates[INDIVIDUAL_NAME_COLUMN] == individual]
         individual_df = individual_df.sort_values(by=[DATE_COLUMN]).reset_index(drop=True)
         individual_df = mark_series(individual_df, pd.Timedelta(series_timedelta))

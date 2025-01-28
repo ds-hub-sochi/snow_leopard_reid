@@ -1,9 +1,11 @@
 # CLI usage
 
 ```bash
-python ./irbis_classifier/cli/preprocessing/find_series.py \
+python ./irbis_classifier/cli/preprocessing/find_series.py \   
     --path_to_data_dir ./data/raw/full_images \
-    --path_to_save_dir ./data/interim/stage_with_series
+    --path_to_save_dir ./data/interim/stage_with_series \
+    --path_to_unification_mapping_json ./data/configs/unification_mapping.json \
+    --path_to_supported_labels_json ./data/configs/supported_classes.json
 ```
 
 ```bash

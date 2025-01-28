@@ -1,4 +1,5 @@
 """This is a module for easy manipulating with labels"""
+from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field

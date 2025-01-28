@@ -53,10 +53,10 @@ def add_markup(
                     if float(markup_parts[-1]) > min_relative_size and float(markup_parts[-2]) > min_relative_size:
                         dict_with_markup['path'].append(current_series.path)
                         dict_with_markup['specie'].append(current_series.unified_class)
-                        dict_with_markup['x_center'].append(str(float(markup_parts[-4])))
-                        dict_with_markup['y_center'].append(str(float(markup_parts[-3])))
-                        dict_with_markup['width'].append(str(float(markup_parts[-2])))
-                        dict_with_markup['height'].append(str(float(markup_parts[-1])))
+                        dict_with_markup['x_center'].append(str(min(max(float(markup_parts[-4]), 0.0), 1.0)))
+                        dict_with_markup['y_center'].append(str(min(max(float(markup_parts[-3]), 0.0), 1.0)))
+                        dict_with_markup['width'].append(str(min(max(float(markup_parts[-2]), 0.0), 1.0)))
+                        dict_with_markup['height'].append(str(min(max(float(markup_parts[-1]), 0.0), 1.0)))
 
                         stage: str = re.findall(
                             r'stage\_[0-9]+',

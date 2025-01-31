@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 from glob import glob
-from loguru import logger
 from pathlib import Path
 from typing import Any
 
 import click
 import pandas as pd
+from loguru import logger
 
 from irbis_classifier.src.utils import sample_from_dataframe
 

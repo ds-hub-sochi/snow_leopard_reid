@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from glob import glob
-from loguru import logger
 from pathlib import Path
 from shutil import rmtree
 
 import click
 import pandas as pd
+from loguru import logger
 
 from irbis_classifier.src.find_duplicates import DuplicateFinder, DuplicateOpsProcessor, \
     export_dict2json, VIDEOS_KW, IMAGES_KW

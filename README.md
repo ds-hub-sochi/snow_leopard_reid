@@ -37,7 +37,7 @@ python ./irbis_classifier/cli/preprocessing/train_val_test_split.py \
     --val_size 0.2 \
     --path_to_dir_with_stages ./data/interim/stage_with_resampled_series \
     --path_to_markup_dir ./data/raw/detection_labels \
-    --path_to_save_dir ./data/interim/train_val_test_split  
+    --path_to_save_dir ./data/interim/train_val_test_split
 ```
 
 ```bash
@@ -53,3 +53,12 @@ python ./irbis_classifier/cli/reports/dataset_statistics.py \
     --path_to_data_dir ./data/processed \
     --path_to_save_dir ./reports/figures
 ```
+
+# Dropped labels:
+
+For 28.01.25:
+
+* выдра
+* косуля
+* бенгальская кошка
+* хорек

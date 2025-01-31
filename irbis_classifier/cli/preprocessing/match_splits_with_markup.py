@@ -24,6 +24,7 @@ def add_markup(
         dict_with_markup: dict[str, list[str | int]] = {
             'path' : [],
             'specie' : [],
+            'class_id': [],
             'x_center': [],
             'y_center': [],
             'width': [],
@@ -53,6 +54,7 @@ def add_markup(
                     if float(markup_parts[-1]) > min_relative_size and float(markup_parts[-2]) > min_relative_size:
                         dict_with_markup['path'].append(current_series.path)
                         dict_with_markup['specie'].append(current_series.unified_class)
+                        dict_with_markup['class_id'].append(current_series.class_id)
                         dict_with_markup['x_center'].append(str(min(max(float(markup_parts[-4]), 0.0), 1.0)))
                         dict_with_markup['y_center'].append(str(min(max(float(markup_parts[-3]), 0.0), 1.0)))
                         dict_with_markup['width'].append(str(min(max(float(markup_parts[-2]), 0.0), 1.0)))

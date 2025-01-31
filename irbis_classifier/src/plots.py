@@ -291,12 +291,12 @@ def create_classes_bar_plot_over_stages(
         logger.success('stacked bar plot was created')
 
 
-def create_sequence_length_histogram(  # pylint: disable=too-many-positional-arguments
-    data_dir: Path | str,
+def create_sequence_length_histogram_comparison(  # pylint: disable=too-many-positional-arguments
+    data_dir_before: Path | str,
+    data_dir_after: Path | str,
     show: bool,
     save: bool,
     save_dir: Path | str | None,
-    filename: str | None,
     max_sequence_length: int = 150,
 ) -> None:
     logger.info('sequence length histogram creation was started')
@@ -305,54 +305,80 @@ def create_sequence_length_histogram(  # pylint: disable=too-many-positional-arg
         logger.warning("sequence length histogram is cancelled due to False value in both 'save' and 'show' options")
         return
 
-    data_dir = Path(data_dir).resolve()
+    data_dir_before = Path(data_dir_before).resolve()
+    data_dir_after = Path(data_dir_after).resolve()
 
-    length_to_count: defaultdict[int, int] = defaultdict(int)
+    ax = plt.gca()
 
-    stages: list[str] = [path for path in glob(str(data_dir / '*')) if Path(path).suffix == '.csv']
-    for stage in stages:
-        df: pd.DataFrame = pd.read_csv(stage)
-        unique_sequences: list[str] = list(set(df.sequence))
+    data_list: list[tuple[int, int, str]] = []
 
-        for sequence in unique_sequences:
-            sequence_length: int = df[df.sequence == sequence].shape[0]
-            if sequence_length > max_sequence_length:
-                length_to_count[max_sequence_length] += 1
-            else:
-                length_to_count[sequence_length] += 1
+    for data_dir, label in [
+        (data_dir_before, 'before resampling'),
+        (data_dir_after, 'after resampling'),
+    ]:
+
+        length_to_count: defaultdict[int, int] = defaultdict(int)
+
+        stages: list[str] = [path for path in glob(str(data_dir / '*')) if Path(path).suffix == '.csv']
+        for stage in stages:
+            df: pd.DataFrame = pd.read_csv(stage)
+            unique_sequences: list[str] = list(set(df.sequence))
+
+            for sequence in unique_sequences:
+                sequence_length: int = df[df.sequence == sequence].shape[0]
+                if sequence_length > max_sequence_length:
+                    length_to_count[max_sequence_length] += 1
+                else:
+                    length_to_count[sequence_length] += 1
+
+        for length, count in length_to_count.items():
+            data_list.append((length, count, label))
+
+    data_df: pd.DataFrame = pd.DataFrame(
+        data_list,
+        columns=(
+            'length',
+            'count',
+            'label',
+        ),
+    )
 
     with sns.color_palette(
         'deep',
     ):
         sns.histplot(
-            x=list(length_to_count.keys()),
-            weights=list(length_to_count.values()),
+            data_df,
+            x='length',
+            weights='count',
+            hue='label',
             bins=max_sequence_length,
         )
 
-        ax = plt.gca()
+    plt.title('Сравнение гистограмм длин серий')
+    plt.xlabel('Длина серии')
+    plt.ylabel('Количество серий данной длины')
 
-        ax.grid(
-            linewidth=0.75,
-            zorder=0,
+    ax.grid(
+        linewidth=0.75,
+        zorder=0,
+    )
+    ax.grid(
+        which='minor',
+        linewidth=0.50,
+        zorder=0,
+    )
+    ax.minorticks_on()
+
+    if show:
+        plt.show()
+
+    if save and save_dir is not None:
+        save_dir = Path(save_dir).resolve()
+        save_dir.mkdir(
+            exist_ok=True,
+            parents=True,
         )
-        ax.grid(
-            which='minor',
-            linewidth=0.50,
-            zorder=0,
-        )
-        ax.minorticks_on()
 
-        if show:
-            plt.show()
-
-        if save and save_dir is not None:
-            save_dir = Path(save_dir).resolve()
-            save_dir.mkdir(
-                exist_ok=True,
-                parents=True,
-            )
-
-            plt.savefig(save_dir / filename)  # type: ignore
+        plt.savefig(save_dir / 'sequence_length_histograms_comparison.png')  # type: ignore
 
     logger.success('sequence length histogram was created')

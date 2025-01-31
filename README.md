@@ -15,10 +15,35 @@ python ./irbis_classifier/cli/preprocessing/filter_duplicates.py \
 ```
 
 ```bash
+python ./irbis_classifier/cli/reports/sequence_lenght.py \
+    --path_to_data_dir ./data/interim/stage_with_series_filtered \
+    --path_to_save_dir ./reports/figures \
+    --filename before_sampling.png \
+    --max_sequence_length 150
+```
+
+```bash
+python ./irbis_classifier/cli/preprocessing/sample_from_long_series.py \
+    --path_to_data_dir ./data/interim/stage_with_series_filtered \
+    --path_to_save_dir ./data/interim/stage_with_resampled_series \
+    --classes_to_sample_json ./data/configs/classes_to_sample.json \
+    --max_sequence_length 40 \
+    --resample_size 0.25
+```
+
+```bash
+python ./irbis_classifier/cli/reports/sequence_lenght.py \
+    --path_to_data_dir ./data/interim/stage_with_resampled_series \
+    --path_to_save_dir ./reports/figures \
+    --filename after_sampling.png \
+    --max_sequence_length 40
+```
+
+```bash
 python ./irbis_classifier/cli/preprocessing/train_val_test_split.py \
     --train_size 0.6 \
     --val_size 0.2 \
-    --path_to_dir_with_stages ./data/interim/stage_with_series_filtered \
+    --path_to_dir_with_stages ./data/interim/stage_with_resampled_series \
     --path_to_markup_dir ./data/raw/detection_labels \
     --path_to_save_dir ./data/interim/train_val_test_split  
 ```

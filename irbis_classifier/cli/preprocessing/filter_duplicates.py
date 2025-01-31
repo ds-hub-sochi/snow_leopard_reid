@@ -69,7 +69,7 @@ def filter_duplicates(
         stage = stage.split('/')[-1]
         current_df.to_csv(
             path_to_save_dir / stage,
-            index=False,
+            # index=False,
         )
 
     rmtree(temp_dir)

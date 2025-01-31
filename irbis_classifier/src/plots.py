@@ -291,13 +291,13 @@ def create_classes_bar_plot_over_stages(
         logger.success('stacked bar plot was created')
 
 
-def create_sequence_length_histogram(
+def create_sequence_length_histogram(  # pylint disable=too-many-positional-arguments
     data_dir: Path | str,
     show: bool,
     save: bool,
     save_dir: Path | str | None,
     filename: str | None,
-    max_sequence_length: int = 150
+    max_sequence_length: int = 150,
 ) -> None:
     logger.info('sequence length histogram creation was started')
 

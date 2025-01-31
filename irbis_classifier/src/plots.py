@@ -308,14 +308,12 @@ def create_sequence_length_histogram_comparison(  # pylint: disable=too-many-pos
     data_dir_before = Path(data_dir_before).resolve()
     data_dir_after = Path(data_dir_after).resolve()
 
-    ax = plt.gca()
-
     data_list: list[tuple[int, int, str]] = []
 
-    for data_dir, label in [
+    for data_dir, label in (
         (data_dir_before, 'before resampling'),
         (data_dir_after, 'after resampling'),
-    ]:
+    ):
 
         length_to_count: defaultdict[int, int] = defaultdict(int)
 
@@ -334,20 +332,18 @@ def create_sequence_length_histogram_comparison(  # pylint: disable=too-many-pos
         for length, count in length_to_count.items():
             data_list.append((length, count, label))
 
-    data_df: pd.DataFrame = pd.DataFrame(
-        data_list,
-        columns=(
-            'length',
-            'count',
-            'label',
-        ),
-    )
-
     with sns.color_palette(
         'deep',
     ):
         sns.histplot(
-            data_df,
+            pd.DataFrame(
+                data_list,
+                columns=(
+                    'length',
+                    'count',
+                    'label',
+                ),
+            ),
             x='length',
             weights='count',
             hue='label',
@@ -357,6 +353,8 @@ def create_sequence_length_histogram_comparison(  # pylint: disable=too-many-pos
     plt.title('Сравнение гистограмм длин серий')
     plt.xlabel('Длина серии')
     plt.ylabel('Количество серий данной длины')
+
+    ax = plt.gca()
 
     ax.grid(
         linewidth=0.75,

@@ -291,7 +291,7 @@ def create_classes_bar_plot_over_stages(
         logger.success('stacked bar plot was created')
 
 
-def create_sequence_length_histogram(  # noqa: R0917
+def create_sequence_length_histogram(  # pylint: ignore=too-many-positional-arguments
     data_dir: Path | str,
     show: bool,
     save: bool,

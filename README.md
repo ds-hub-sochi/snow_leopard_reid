@@ -36,7 +36,7 @@ python ./irbis_classifier/cli/reports/sequence_lenght.py \
     --path_to_data_dir ./data/interim/stage_with_resampled_series \
     --path_to_save_dir ./reports/figures \
     --filename after_sampling.png \
-    --max_sequence_length 40
+    --max_sequence_length 150
 ```
 
 ```bash

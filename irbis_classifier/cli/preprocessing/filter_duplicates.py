@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from glob import glob
+from loguru import logger
 from pathlib import Path
 from shutil import rmtree
 
@@ -18,6 +19,8 @@ def filter_duplicates(
     path_to_data_dir: str | Path,
     path_to_save_dir: str | Path,
 ):
+    logger.info('duplication finding has started')
+
     path_to_data_dir = Path(path_to_data_dir).resolve()
 
     path_to_save_dir = Path(path_to_save_dir).resolve()
@@ -67,6 +70,8 @@ def filter_duplicates(
         current_df.to_csv(path_to_save_dir / stage)
 
     rmtree(temp_dir)
+
+    logger.success('duplication finding has ended')
 
 
 if __name__ == "__main__":

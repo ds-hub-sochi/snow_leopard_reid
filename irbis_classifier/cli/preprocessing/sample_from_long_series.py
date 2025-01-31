@@ -15,9 +15,13 @@ from irbis_classifier.src.utils import sample_from_dataframe
 @click.command()
 @click.option('--path_to_data_dir', type=click.Path(exists=True), help='The path to the data directory')
 @click.option('--path_to_save_dir', type=click.Path(), help='The path to the data directory')
-@click.option('--classes_to_sample_json', type=click.Path(exists=True), help='json with list of classes that can be sampled')
-@click.option('--max_sequence_length', type=int, help = 'sequences with length bigger then this will be combined')
-@click.option('--resample_size', type=float, help = 'size of sequence after resampling. Absolute or a fraction')
+@click.option(
+    '--classes_to_sample_json',
+    type=click.Path(exists=True),
+    help='json with list of classes that can be sampled',
+)
+@click.option('--max_sequence_length', type=int, help='sequences with length bigger then this will be combined')
+@click.option('--resample_size', type=float, help='size of sequence after resampling. Absolute or a fraction')
 def resample_stages(
     path_to_data_dir: Path | str,
     path_to_save_dir: Path | str,
@@ -83,7 +87,7 @@ def resample_stages(
         resampled_stage_df.to_csv(path_to_save_dir / stage_name)
         logger.info(f'dataframe now has {resampled_stage_df.shape[0]} values')
         logger.success(f'{stage_name} processed')
-            
+
 
 if __name__ == '__main__':
     resample_stages()  # pylint: disable=no-value-for-parameter

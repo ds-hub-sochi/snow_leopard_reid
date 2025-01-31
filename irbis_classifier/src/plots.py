@@ -85,7 +85,7 @@ def create_pie_plots_over_split(
             pd.read_csv(data_dir / split),
             f'Соотношение классов в {split[:-4]} выборке',
             show=show,
-            filename=save_dir / split if save else None,
+            filename=save_dir / split if (save and save_dir is not None) else None,  # type: ignore
         )
 
     logger.success('pie plots were created')
@@ -213,7 +213,7 @@ def create_classes_bar_plot_over_stages(
 
     data_dir = Path(data_dir).resolve()
 
-    splits: list[str] = [pd.read_csv(path) for path in glob(str(data_dir / '*'))]
+    splits: list[pd.DataFrame] = [pd.read_csv(path) for path in glob(str(data_dir / '*'))]
     cumulative_df: pd.DataFrame = pd.concat(
         splits,
         ignore_index=True,
@@ -223,7 +223,7 @@ def create_classes_bar_plot_over_stages(
     species: list[str] = sorted(list(set(cumulative_df.specie)))
     stages: list[int] = sorted([int(stage) for stage in list(set(cumulative_df.stage))])
 
-    weight_counts: dict[str, np.array] = {}
+    weight_counts: dict[str, np.ndarray] = {}
     with sns.color_palette(
         'deep',
         len(stages),
@@ -239,7 +239,7 @@ def create_classes_bar_plot_over_stages(
         _, ax = plt.subplots(figsize=(len(species), 8))
         bottom = np.zeros(len(species))
 
-        for stage, weight_count in weight_counts.items():
+        for stage, weight_count in weight_counts.items():  # type: ignore
             _ = ax.bar(
                 species,
                 weight_count,
@@ -309,7 +309,7 @@ def create_sequence_length_histogram(
 
     length_to_count: defaultdict[int, int] = defaultdict(int)
 
-    stages: list[list] = [path for path in glob(str(data_dir / '*')) if Path(path).suffix == '.csv']
+    stages: list[str] = [path for path in glob(str(data_dir / '*')) if Path(path).suffix == '.csv']
     for stage in stages:
         df: pd.DataFrame = pd.read_csv(stage)
         unique_sequences: list[str] = list(set(df.sequence))
@@ -325,9 +325,9 @@ def create_sequence_length_histogram(
         'deep',
     ):
         sns.histplot(
-            x = list(length_to_count.keys()),
-            weights = list(length_to_count.values()),
-            bins = max_sequence_length,
+            x=list(length_to_count.keys()),
+            weights=list(length_to_count.values()),
+            bins=max_sequence_length,
         )
 
         ax = plt.gca()
@@ -353,7 +353,6 @@ def create_sequence_length_histogram(
                 parents=True,
             )
 
-            plt.savefig(save_dir / filename)
-
+            plt.savefig(save_dir / filename)  # type: ignore
 
     logger.success('sequence length histogram was created')

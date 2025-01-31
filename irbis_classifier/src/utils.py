@@ -21,7 +21,7 @@ def fix_rus_i_naming(filename: str) -> str:
 def sample_from_dataframe(
     df: pd.DataFrame,
     sample_size: int,
-) -> tuple[str, ...]:
+) -> pd.DataFrame:
     indices: list[int] = sample(list(df.index), sample_size)
 
     sampled_values = df.loc[indices]

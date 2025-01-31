@@ -45,7 +45,7 @@ def construct_series(
     label_encoder: LabelEncoder = create_label_encoder(
         path_to_unification_mapping_json,
         path_to_supported_labels_json,
-    ) 
+    )
 
     df['unified_class'] = df['specie'].map(label_encoder.get_unified_label)
     df = df[df['unified_class'].notna()]
@@ -74,7 +74,7 @@ def find_series(
     path_to_save_dir: Path | str,
     path_to_unification_mapping_json: Path | str,
     path_to_supported_labels_json: Path | str,
-    
+
 ) -> None:
     path_to_data_dir = Path(path_to_data_dir).resolve()
     path_to_unification_mapping_json = Path(path_to_unification_mapping_json).resolve()

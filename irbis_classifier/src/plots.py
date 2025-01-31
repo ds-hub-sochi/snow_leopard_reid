@@ -85,7 +85,7 @@ def create_pie_plots_over_split(
             pd.read_csv(data_dir / split),
             f'Соотношение классов в {split[:-4]} выборке',
             show=show,
-            filename=save_dir / split if save else None,
+            filename=save_dir / split if (save and save_dir is not None) else None,  # type: ignore
         )
 
     logger.success('pie plots were created')
@@ -202,7 +202,7 @@ def create_classes_bar_plot_over_stages(
     show: bool,
     save: bool,
     save_dir: Path | str | None,
-):
+) -> None:
     # based ob
     # https://matplotlib.org/stable/gallery/lines_bars_and_markers/bar_stacked.html
     logger.info('stacked bar plot with stages split creation was started')
@@ -213,7 +213,7 @@ def create_classes_bar_plot_over_stages(
 
     data_dir = Path(data_dir).resolve()
 
-    splits: list[str] = [pd.read_csv(path) for path in glob(str(data_dir / '*'))]
+    splits: list[pd.DataFrame] = [pd.read_csv(path) for path in glob(str(data_dir / '*'))]
     cumulative_df: pd.DataFrame = pd.concat(
         splits,
         ignore_index=True,
@@ -223,7 +223,7 @@ def create_classes_bar_plot_over_stages(
     species: list[str] = sorted(list(set(cumulative_df.specie)))
     stages: list[int] = sorted([int(stage) for stage in list(set(cumulative_df.stage))])
 
-    weight_counts: dict[str, np.array] = {}
+    weight_counts: dict[str, np.ndarray] = {}
     with sns.color_palette(
         'deep',
         len(stages),
@@ -239,7 +239,7 @@ def create_classes_bar_plot_over_stages(
         _, ax = plt.subplots(figsize=(len(species), 8))
         bottom = np.zeros(len(species))
 
-        for stage, weight_count in weight_counts.items():
+        for stage, weight_count in weight_counts.items():  # type: ignore
             _ = ax.bar(
                 species,
                 weight_count,
@@ -289,3 +289,70 @@ def create_classes_bar_plot_over_stages(
             plt.savefig(save_dir / 'stage_stacked_barplot.png')
 
         logger.success('stacked bar plot was created')
+
+
+def create_sequence_length_histogram(  # pylint: disable=too-many-positional-arguments
+    data_dir: Path | str,
+    show: bool,
+    save: bool,
+    save_dir: Path | str | None,
+    filename: str | None,
+    max_sequence_length: int = 150,
+) -> None:
+    logger.info('sequence length histogram creation was started')
+
+    if not show and not save:
+        logger.warning("sequence length histogram is cancelled due to False value in both 'save' and 'show' options")
+        return
+
+    data_dir = Path(data_dir).resolve()
+
+    length_to_count: defaultdict[int, int] = defaultdict(int)
+
+    stages: list[str] = [path for path in glob(str(data_dir / '*')) if Path(path).suffix == '.csv']
+    for stage in stages:
+        df: pd.DataFrame = pd.read_csv(stage)
+        unique_sequences: list[str] = list(set(df.sequence))
+
+        for sequence in unique_sequences:
+            sequence_length: int = df[df.sequence == sequence].shape[0]
+            if sequence_length > max_sequence_length:
+                length_to_count[max_sequence_length] += 1
+            else:
+                length_to_count[sequence_length] += 1
+
+    with sns.color_palette(
+        'deep',
+    ):
+        sns.histplot(
+            x=list(length_to_count.keys()),
+            weights=list(length_to_count.values()),
+            bins=max_sequence_length,
+        )
+
+        ax = plt.gca()
+
+        ax.grid(
+            linewidth=0.75,
+            zorder=0,
+        )
+        ax.grid(
+            which='minor',
+            linewidth=0.50,
+            zorder=0,
+        )
+        ax.minorticks_on()
+
+        if show:
+            plt.show()
+
+        if save and save_dir is not None:
+            save_dir = Path(save_dir).resolve()
+            save_dir.mkdir(
+                exist_ok=True,
+                parents=True,
+            )
+
+            plt.savefig(save_dir / filename)  # type: ignore
+
+    logger.success('sequence length histogram was created')

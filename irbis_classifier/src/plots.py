@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from loguru import logger
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, rcParams
 from mpl_toolkits.axes_grid1 import ImageGrid
 
 
@@ -27,7 +27,7 @@ plt.rc('xtick', labelsize=SMALL_SIZE)
 plt.rc('ytick', labelsize=SMALL_SIZE)
 plt.rc('legend', fontsize=SMALL_SIZE)
 plt.rc('figure', titlesize=BIGGER_SIZE)
-plt.rcParams['figure.constrained_layout.use'] = True
+rcParams.update({'figure.autolayout': True})
 
 
 def create_classes_pie_plot(

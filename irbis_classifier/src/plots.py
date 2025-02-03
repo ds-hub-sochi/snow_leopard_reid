@@ -4,12 +4,17 @@ import os
 from collections import defaultdict
 from glob import glob
 from pathlib import Path
+import warnings
 
 import numpy as np
 import pandas as pd
 import seaborn as sns
 from loguru import logger
 from matplotlib import pyplot as plt, rcParams
+from mpl_toolkits.axes_grid1 import ImageGrid
+
+
+warnings.filterwarnings('ignore')
 
 SMALL_SIZE: int = 12
 MEDIUM_SIZE: int = 16
@@ -22,7 +27,7 @@ plt.rc('xtick', labelsize=SMALL_SIZE)
 plt.rc('ytick', labelsize=SMALL_SIZE)
 plt.rc('legend', fontsize=SMALL_SIZE)
 plt.rc('figure', titlesize=BIGGER_SIZE)
-rcParams.update({'figure.autolayout': True})
+plt.rcParams['figure.constrained_layout.use'] = True
 
 
 def create_classes_pie_plot(
@@ -380,3 +385,53 @@ def create_sequence_length_histogram_comparison(  # pylint: disable=too-many-pos
         plt.savefig(save_dir / 'sequence_length_histograms_comparison.png')  # type: ignore
 
     logger.success('sequence length histogram was created')
+
+
+def create_image_grid(
+    images: list[np.ndarray],
+    titles: list[str],
+    show: bool,
+    save: bool,
+    save_dir: Path | str | None,
+) -> None:
+    logger.info('Image grid creation has started')
+    assert len(images) == len(titles), \
+        logger.error(f'Number of images {len(images)} != number of titles {len(titles)}')
+
+    n_samples: int = len(images)
+
+    assert float(int(np.sqrt(n_samples))**2 == n_samples), \
+        logger.error('Number of samples must be a square, like 36 or 25')
+
+    figure: plt.Figure = plt.figure(figsize=(n_samples, n_samples))
+    grid: ImageGrid = ImageGrid(
+        figure,
+        111,
+        nrows_ncols=(
+            int(np.sqrt(n_samples)),
+            int(np.sqrt(n_samples)),
+        ),
+        axes_pad=0.5,
+    )
+
+    for ax, image, title in zip(grid, images, titles):  # type: ignore
+        ax.imshow(image)
+        ax.set_title(
+            title,
+            fontsize=24,
+        )
+        ax.set_axis_off()
+
+    if show:
+        plt.show()
+
+    if save and save_dir is not None:
+        save_dir = Path(save_dir).resolve()
+        save_dir.mkdir(
+            exist_ok=True,
+            parents=True,
+        )
+
+        plt.savefig(save_dir / 'augmented_image_variants.png')  # type: ignore
+
+    logger.success('Image grid was created')

@@ -5,6 +5,7 @@ from pathlib import Path
 import albumentations as A
 import click
 import numpy as np
+from loguru import logger
 
 from irbis_classifier.src.plots import create_image_grid
 from irbis_classifier.src.training.datasets import AnimalDataset
@@ -20,12 +21,15 @@ from irbis_classifier.src.training.datasets import AnimalDataset
 @click.option(
     '--n_samples',
     type=int,
+    default=35,
     help='Numner of samples to produce (original image excluded). Must be a square - 1, like 35 or 15',
 )
+@click.option('--image_index', type=int, default=4125, help='index of an image you want to display')
 def get_figure(
     path_to_data_file: Path | str,
     path_to_save_dir: Path | str,
     n_samples: int,
+    image_index: int,
 ):
     path_to_data_file = Path(path_to_data_file).resolve()
 
@@ -149,23 +153,28 @@ def get_figure(
         train_transforms,
     )
 
-    images: list[np.ndarray] = []
-    images.append(val_dataset[4124][0])
+    try:
+        assert image_index < len(train_dataset), ''
+    except AssertionError:
+        logger.error('index must be lower than size of the dataset')
+    else:
+        images: list[np.ndarray] = []
+        images.append(val_dataset[image_index][0])
 
-    titles: list[str] = []
-    titles.append('Оригинальное изображение')
+        titles: list[str] = []
+        titles.append('Оригинальное изображение')
 
-    for i in range(n_samples):
-        images.append(train_dataset[4124][0])
-        titles.append(f'Вариант #{i + 1}')
+        for i in range(n_samples):
+            images.append(train_dataset[image_index][0])
+            titles.append(f'Вариант #{i + 1}')
 
-    create_image_grid(
-        images,
-        titles,
-        False,
-        True,
-        path_to_save_dir,
-    )
+        create_image_grid(
+            images,
+            titles,
+            False,
+            True,
+            path_to_save_dir,
+        )
 
 
 if __name__ == '__main__':

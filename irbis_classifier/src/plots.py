@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from loguru import logger
-from matplotlib import pyplot as plt, rcParams
+from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
 
 

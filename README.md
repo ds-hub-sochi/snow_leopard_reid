@@ -54,6 +54,13 @@ python ./irbis_classifier/cli/reports/dataset_statistics.py \
     --path_to_save_dir ./reports/figures
 ```
 
+```bash
+python ./irbis_classifier/cli/reports/test_augmentations.py \
+    --path_to_data_file ./data/processed/train.csv \
+    --path_to_save_dir ./reports/figures \
+    --n_samples 35
+```
+
 # Dropped labels:
 
 For 28.01.25:

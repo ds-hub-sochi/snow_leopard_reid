@@ -126,7 +126,11 @@ def get_figure(
                     ),
                     A.RandomRain(
                         p = 0.05,
-                    )
+                    ),
+                    A.SaltAndPepper(
+                        amount = (0.05, 0.10),
+                        p = 0.10,
+                    ),
                 ],
                 p = 1.0,
             ),

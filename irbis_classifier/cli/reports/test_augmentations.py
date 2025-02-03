@@ -4,6 +4,7 @@ from pathlib import Path
 
 import albumentations as A
 import click
+import numpy as np
 
 from irbis_classifier.src.plots import create_image_grid
 from irbis_classifier.src.training.datasets import AnimalDataset

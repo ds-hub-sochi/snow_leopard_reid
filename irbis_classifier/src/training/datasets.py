@@ -35,9 +35,11 @@ class AnimalDataset(Dataset):
         height, width, _ = image_np.shape
 
         x_lower_left: int = round((current_serie.x_center - current_serie.width / 2) * width)
+        x_lower_left = max(x_lower_left, 0)
         x_upper_right: int = round((current_serie.x_center + current_serie.width / 2) * width)
 
         y_lower_left: int = round((current_serie.y_center - current_serie.height / 2) * height)
+        y_lower_left = max(y_lower_left, 0)
         y_upper_right: int = round((current_serie.y_center + current_serie.height / 2) * height)
 
         crop = image_np[y_lower_left:y_upper_right, x_lower_left:x_upper_right, :]

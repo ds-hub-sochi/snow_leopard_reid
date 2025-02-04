@@ -113,6 +113,13 @@ def get_figure(
                         blur_limit = (3, 7),
                         p = 0.85,
                     ),
+                    A.MotionBlur(
+                        blur_limit = (3, 7),
+                        angle_range = (0, 360),
+                        direction_range = (-1.0, 1.0),
+                        allow_shifted = True,
+                        p = 0.85,
+                    )
                 ],
                 p = 1.0
             ),
@@ -134,6 +141,10 @@ def get_figure(
                 ],
                 p = 1.0,
             ),
+            A.SafeRotate(
+                limit = (-30, 30),
+                p = 0.85,
+            ),
             A.RandomCrop(
                 height = 224,
                 width = 224,
@@ -142,10 +153,6 @@ def get_figure(
                 fill = 0,
                 pad_position = 'center',
                 p = 1.0,
-            ),
-            A.SafeRotate(
-                limit = (-30, 30),
-                p = 0.85,
             ),
             A.HorizontalFlip(
                 p = 0.85,

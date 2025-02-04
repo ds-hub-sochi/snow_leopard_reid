@@ -296,7 +296,7 @@ def create_classes_bar_plot_over_stages(
         logger.success('stacked bar plot was created')
 
 
-def create_sequence_length_histogram_comparison(  # pylint: disable=too-many-positional-arguments
+def create_sequence_length_histogram_comparison(  # pylint: disable=too-many-positional-arguments,too-many-locals
     data_dir_before: Path | str,
     data_dir_after: Path | str,
     show: bool,
@@ -340,7 +340,7 @@ def create_sequence_length_histogram_comparison(  # pylint: disable=too-many-pos
     with sns.color_palette(
         'deep',
     ):
-        sns.histplot(
+        ax = sns.histplot(
             pd.DataFrame(
                 data_list,
                 columns=(
@@ -359,8 +359,6 @@ def create_sequence_length_histogram_comparison(  # pylint: disable=too-many-pos
     plt.xlabel('Длина серии')
     plt.ylabel('Количество серий данной длины')
 
-    ax = plt.gca()
-
     ax.grid(
         linewidth=0.75,
         zorder=0,
@@ -371,6 +369,30 @@ def create_sequence_length_histogram_comparison(  # pylint: disable=too-many-pos
         zorder=0,
     )
     ax.minorticks_on()
+
+    proper_length: int = len(ax.patches) // 2  # cause two histograms were created
+
+    for i in range(proper_length):
+        difference: int = ax.patches[i].get_height() - ax.patches[proper_length + i].get_height()
+        ax.annotate(
+            f'{"+" if difference > 0 else ""}{difference if difference != 0 else ""}\n',
+            (
+                ax.patches[proper_length + i].get_x() + ax.patches[proper_length + i].get_width() / 2,
+                ax.patches[proper_length + i].get_height(),
+            ),
+            ha='center',
+            va='center',
+            color='red' if difference < 0 else 'blue',
+            fontweight='bold',
+            fontsize = 8,
+            rotation = 30,
+        )
+
+    labels = [item.get_text() for item in ax.get_xticklabels()]
+    labels[-2] = f'{max_sequence_length}+'
+    ax.set_xticklabels(labels)
+
+    ax.set_yscale('log')
 
     if show:
         plt.show()

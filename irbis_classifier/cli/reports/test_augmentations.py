@@ -113,6 +113,13 @@ def get_figure(
                         blur_limit = (3, 7),
                         p = 0.85,
                     ),
+                    A.MotionBlur(
+                        blur_limit = (3, 7),
+                        angle_range = (0, 360),
+                        direction_range = (-1.0, 1.0),
+                        allow_shifted = True,
+                        p = 0.85,
+                    )
                 ],
                 p = 1.0
             ),

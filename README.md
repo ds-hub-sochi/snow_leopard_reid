@@ -31,7 +31,7 @@ python ./irbis_classifier/cli/preprocessing/sample_from_long_series.py \
 
 ```bash
 python ./irbis_classifier/cli/reports/sequence_lenght.py \
-    --path_to_data_dir_before ./data/interim/stage_with_series_filtered \
+    --path_to_data_dir_before ./data/interim/stage_with_series_without_duplicates \
     --path_to_data_dir_after ./data/interim/stage_with_resampled_series \
     --path_to_save_dir ./reports/figures \
     --max_sequence_length 40

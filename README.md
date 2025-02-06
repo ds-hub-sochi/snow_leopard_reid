@@ -9,14 +9,20 @@ python ./irbis_classifier/cli/preprocessing/find_series.py \
 ```
 
 ```bash
-python ./irbis_classifier/cli/preprocessing/filter_duplicates.py \
+python ./irbis_classifier/cli/preprocessing/filter_broken_images.py \
     --path_to_data_dir ./data/interim/stage_with_series \
     --path_to_save_dir ./data/interim/stage_with_series_filtered
 ```
 
 ```bash
-python ./irbis_classifier/cli/preprocessing/sample_from_long_series.py \
+python ./irbis_classifier/cli/preprocessing/filter_duplicates.py \
     --path_to_data_dir ./data/interim/stage_with_series_filtered \
+    --path_to_save_dir ./data/interim/stage_with_series_without_duplicates
+```
+
+```bash
+python ./irbis_classifier/cli/preprocessing/sample_from_long_series.py \
+    --path_to_data_dir ./data/interim/stage_with_series_without_duplicates \
     --path_to_save_dir ./data/interim/stage_with_resampled_series \
     --classes_to_sample_json ./data/configs/classes_to_sample.json \
     --max_sequence_length 40 \

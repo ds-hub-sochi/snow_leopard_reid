@@ -23,7 +23,7 @@ class AnimalDataset(Dataset):
 
     def __len__(self) -> int:
         return self._df.shape[0]
-        
+
     def __getitem__(
         self,
         index: int
@@ -59,7 +59,7 @@ def create_train_val_test_datasets(
     val_transforms: A.Compose,
 ) -> tuple[AnimalDataset, AnimalDataset, AnimalDataset]:
     path_to_data_dir = Path(path_to_data_dir).resolve()
-    
+
     train_dataset: AnimalDataset = AnimalDataset(
         path_to_data_dir / 'train.csv',
         train_transforms,

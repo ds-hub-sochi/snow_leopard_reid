@@ -236,7 +236,7 @@ testdata = (
 )
 
 @pytest.mark.parametrize("index,english_label", testdata)
-def test_label_to_index_upsupported_classes_only(
+def test_index_to_english_label_supported_labels_only(
     index: int,
     english_label: int,
 ):

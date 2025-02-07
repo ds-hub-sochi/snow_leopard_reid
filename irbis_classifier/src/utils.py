@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from pathlib import Path
 from random import sample
 
@@ -27,3 +28,22 @@ def sample_from_dataframe(
     sampled_values = df.loc[indices]
 
     return sampled_values
+
+
+def create_confusion_matrix(
+    y_true: Sequence[int],
+    y_predicted: Sequence[int],
+) -> list[list[int]]:
+    assert len(y_true) == len(y_predicted), 'number of predictions must be equal to the number of objects'
+
+    confision_matrix: list[list[int]] = []
+
+    unique_actual_labels = sorted(list(set(y_true)))  # since we have all the classes in the val/test, it's OK
+
+    for _ in unique_actual_labels:
+        confision_matrix.append([0] * len(unique_actual_labels))
+
+    for true_target, predicted_target in zip(y_true, y_predicted):
+        confision_matrix[true_target][predicted_target] += 1
+
+    return confision_matrix

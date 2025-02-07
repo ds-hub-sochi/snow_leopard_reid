@@ -10,7 +10,6 @@ from PIL import Image
 from torch.utils.data import Dataset
 
 
-
 class AnimalDataset(Dataset):
     def __init__(
         self,
@@ -52,3 +51,28 @@ class AnimalDataset(Dataset):
         crop = self._transforms(image=crop)['image']
 
         return crop, current_serie.class_id
+
+
+def create_train_val_test_datasets(
+    path_to_data_dir: str | Path,
+    train_transforms: A.Compose,
+    val_transforms: A.Compose,
+) -> tuple[AnimalDataset, AnimalDataset, AnimalDataset]:
+    path_to_data_dir = Path(path_to_data_dir).resolve()
+    
+    train_dataset: AnimalDataset = AnimalDataset(
+        path_to_data_dir / 'train.csv',
+        train_transforms,
+    )
+
+    val_dataset: AnimalDataset = AnimalDataset(
+        path_to_data_dir / 'val.csv',
+        val_transforms,
+    )
+
+    test_dataset: AnimalDataset = AnimalDataset(
+        path_to_data_dir / 'test.csv',
+        val_transforms,
+    )
+
+    return train_dataset, val_dataset, test_dataset

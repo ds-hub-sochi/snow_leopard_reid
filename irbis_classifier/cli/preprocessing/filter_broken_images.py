@@ -9,7 +9,6 @@ import click
 import numpy as np
 import pandas as pd
 from loguru import logger
-from tqdm import tqdm
 
 from joblib import Parallel, delayed
 
@@ -21,8 +20,8 @@ def process_serie(current_serie: pd.Series):
         logger.error(f'found broken image {current_serie.path}')
 
         return None
-    else:
-        return current_serie.to_list()
+    
+    return current_serie.to_list()
 
 
 @click.command()

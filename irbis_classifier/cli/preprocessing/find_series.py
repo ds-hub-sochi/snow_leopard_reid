@@ -74,11 +74,12 @@ def find_series(
     path_to_save_dir: Path | str,
     path_to_unification_mapping_json: Path | str,
     path_to_supported_labels_json: Path | str,
-
+    path_to_russian_to_english_mapping_json: Path | str,
 ) -> None:
     path_to_data_dir = Path(path_to_data_dir).resolve()
     path_to_unification_mapping_json = Path(path_to_unification_mapping_json).resolve()
     path_to_supported_labels_json = Path(path_to_supported_labels_json).resolve()
+    path_to_russian_to_english_mapping_json = Path(path_to_russian_to_english_mapping_json).resolve()
 
     path_to_save_dir = Path(path_to_save_dir).resolve()
     path_to_save_dir.mkdir(
@@ -93,6 +94,7 @@ def find_series(
             path_to_data_dir / stage,
             path_to_unification_mapping_json,
             path_to_supported_labels_json,
+            path_to_russian_to_english_mapping_json,
         )
         if current_stage_df is not None:
             current_stage_df.to_csv(

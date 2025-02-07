@@ -168,3 +168,5 @@ data/configs/experiment.json
 nohup.out
 
 *.ipynb
+
+models/*

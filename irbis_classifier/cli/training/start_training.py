@@ -1,5 +1,7 @@
 """https://www.comet.com/docs/v2/api-and-sdk/python-sdk/reference/Experiment/ - полезная дока"""
 
+from __future__ import annotations
+
 import os
 from collections.abc import Callable
 from datetime import datetime
@@ -34,7 +36,7 @@ from irbis_classifier.src.training import (
 @click.option('--n_epochs', type=int, help='the duration of training in epochs')
 @click.option('--lr', type=float, help='learning rate you want to setup for your optimize; exponential way is OK')
 @click.option('--device_ids', type=str, help='ids of the devices you want to as a comma separated string; ex. "0,1"')
-def start_training(
+def start_training(  # pylint: disable=too-many-positional-arguments,too-many-locals
     path_to_data_dir: str | Path,
     path_to_checkpoints_dir: str | Path,
     path_to_experiment_config: str | Path,
@@ -103,7 +105,7 @@ def start_training(
     )
     model = model.to(device)
 
-    optimizer: torch.optim.optimizer.Optimizer = torch.optim.Adam(
+    optimizer: torch.optim.Optimizer = torch.optim.Adam(
         params=model.parameters(),
         lr=lr,
     )
@@ -140,4 +142,4 @@ def start_training(
 
 
 if __name__ == "__main__":
-    start_training()
+    start_training()  # pylint: disable=no-value-for-parameter

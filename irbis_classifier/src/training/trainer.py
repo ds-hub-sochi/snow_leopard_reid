@@ -44,7 +44,7 @@ class TrainerInterface(ABC):
         self._path_to_checkpoints_dir: Path = Path(path_to_checkpoints_dir).resolve()
 
     @abstractmethod
-    def train(
+    def train(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         model: torch.nn.Module,
         optimizer: torch.optim.optimizer.Optimizer,
@@ -59,7 +59,7 @@ class TrainerInterface(ABC):
         pass
 
     @abstractmethod
-    def _training_step(
+    def _training_step(  # pylint: disable=too-many-positional-argument
         self,
         model: torch.nn.Module,
         optimizer: torch.optim.optimizer.Optimizer,
@@ -95,12 +95,13 @@ class TrainerInterface(ABC):
     def _saving_step(
         self,
         model: nn.Module,
+        metric_value: float,
     ) -> None:
         pass
 
 
 class Trainer(TrainerInterface):
-    def __init__(
+    def __init__(  # pylint: disable=useless-parent-delegation
         self,
         path_to_checkpoints_dir: str | Path,
         bigger_is_better: bool = True,
@@ -110,7 +111,7 @@ class Trainer(TrainerInterface):
             bigger_is_better,
         )
 
-    def train(
+    def train(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         model: torch.nn.Module,
         optimizer: torch.optim.optimizer.Optimizer,
@@ -166,7 +167,7 @@ class Trainer(TrainerInterface):
 
         logger.success('training has ended')
 
-    def _training_step(
+    def _training_step(  # pylint: disable=too-many-positional-arguments
         self,
         model: torch.nn.Module,
         optimizer: torch.optim.optimizer.Optimizer,
@@ -272,7 +273,7 @@ class Trainer(TrainerInterface):
                 matrix=logs.confusion_matrix,
                 step=epoch,
                 max_categories=len(logs.confusion_matrix),
-                max_examples_per_cell=max([max(logs.confusion_matrix[i]) for i in range(len(logs.confusion_matrix))]),
+                max_examples_per_cell=max(max(logs.confusion_matrix[i]) for i in range(len(logs.confusion_matrix))),
                 labels=list(range(len(logs.confusion_matrix)))
             )
 

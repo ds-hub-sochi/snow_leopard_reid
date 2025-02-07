@@ -26,7 +26,7 @@ val_transfroms: A.Compose = A.Compose(
             max_pixel_value=255.0,
             p=1.0,
         ),
-        A.transforms.ToTensorV2(p=1.0),
+        A.transforms.ToTensorV2(p=1.0),  # pylint: disable=no-member it's just a lie
     ]
 )
 
@@ -128,6 +128,6 @@ train_transforms: A.Compose = A.Compose(
             max_pixel_value=255.0,
             p=1.0,
         ),
-        A.transforms.ToTensorV2(p=1.0),
+        A.transforms.ToTensorV2(p=1.0),  # pylint: disable=no-member it's just a lie
     ]
 )

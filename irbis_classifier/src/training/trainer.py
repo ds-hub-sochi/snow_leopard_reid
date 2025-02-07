@@ -59,7 +59,7 @@ class TrainerInterface(ABC):
         pass
 
     @abstractmethod
-    def _training_step(  # pylint: disable=too-many-positional-argument
+    def _training_step(  # pylint: disable=too-many-positional-arguments
         self,
         model: torch.nn.Module,
         optimizer: torch.optim.optimizer.Optimizer,

@@ -67,6 +67,23 @@ python ./irbis_classifier/cli/reports/test_augmentations.py \
     --n_samples 35
 ```
 
+```bash
+python ./irbis_classifier/cli/training/start_training.py \
+    --path_to_data_dir ./data/processed \
+    --path_to_checkpoints_dir ./models \
+    --path_to_experiment_config ./data/configs/experiment.json \
+    --batch_size 512 \
+    --n_epochs 2 \
+    --lr 1e-5 \
+    --device_ids "0,1"
+```
+
+```bash
+python ./irbis_classifier/cli/testing/start_testing.py \
+    --path_to_test_csv ./data/processed/val.csv \
+    --path_to_weight ./models/2025-02-06/EfficientNet_best_model.pth
+```
+
 # Dropped labels:
 
 For 28.01.25:

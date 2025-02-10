@@ -55,6 +55,7 @@ class TrainerInterface(ABC):
         val_dataloader: torch.utils.data.DataLoader,
         device: torch.device,
         experiment: comet_ml.CometExperiment,
+        model_label: str,
     ) -> None:
         pass
 
@@ -96,6 +97,7 @@ class TrainerInterface(ABC):
         self,
         model: nn.Module,
         metric_value: float,
+        model_label: str,
     ) -> None:
         pass
 
@@ -122,6 +124,7 @@ class Trainer(TrainerInterface):
         val_dataloader: torch.utils.data.DataLoader,
         device: torch.device,
         experiment: comet_ml.CometExperiment,
+        model_label: str,
     ) -> None:
         logger.info(f'training during {n_epochs} epochs has started')
 
@@ -291,6 +294,7 @@ class Trainer(TrainerInterface):
         self,
         model: nn.Module,
         metric_value: float,
+        model_label: str,
     ) -> None:
         if self._bigger_is_better == (metric_value > self._checkpoint_metric):
             self._checkpoint_metric = metric_value
@@ -298,21 +302,21 @@ class Trainer(TrainerInterface):
             if isinstance(model, nn.DataParallel):
                 torch.save(
                     model.module.state_dict(),
-                    self._path_to_checkpoints_dir / f'{model.module.__class__.__name__}_best_model.pth',
+                    self._path_to_checkpoints_dir / f'{model_label}_best_model.pth',
                 )
             else:
                 torch.save(
                     model.state_dict(),
-                    self._path_to_checkpoints_dir / f'{model.__class__.__name__}_best_model.pth',
+                    self._path_to_checkpoints_dir / f'{model_label}_best_model.pth',
                 )
 
         if isinstance(model, nn.DataParallel):
             torch.save(
                 model.module.state_dict(),
-                self._path_to_checkpoints_dir / f'{model.module.__class__.__name__}_last_model.pth',
+                self._path_to_checkpoints_dir / f'{model_label}_last_model.pth',
             )
         else:
             torch.save(
                 model.state_dict(),
-                self._path_to_checkpoints_dir / f'{model.__class__.__name__}_last_model.pth',
+                self._path_to_checkpoints_dir / f'{model_label}_last_model.pth',
             )

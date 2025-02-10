@@ -24,20 +24,20 @@ def test_binary_simple():
 
     assert answer.keys() == results.keys()
 
-    for label in results:
+    for label, result in results.items():
         assert np.allclose(
-            results[label].point,
+            result.point,
             answer[label].point,
             rtol=1e-5,
             atol=1e-5,
         )
         assert np.allclose(
-            results[label].lower,
+            result.lower,
             answer[label].lower,
             atol=3e-2,
         )
         assert np.allclose(
-            results[label].upper,
+            result.upper,
             answer[label].upper,
             atol=3e-2,
         )
@@ -63,20 +63,20 @@ def test_multyclass_simple():
 
     assert answer.keys() == results.keys()
 
-    for label in results:
+    for label, result in results.items():
         assert np.allclose(
-            results[label].point,
+            result.point,
             answer[label].point,
             rtol=1e-5,
             atol=1e-5,
         )
         assert np.allclose(
-            results[label].lower,
+            result.lower,
             answer[label].lower,
             atol=3e-2,
         )
         assert np.allclose(
-            results[label].upper,
+            result.upper,
             answer[label].upper,
             atol=3e-2,
         )
@@ -111,20 +111,20 @@ def test_binary_ideal_classification(
 
     assert answer.keys() == results.keys()
 
-    for label in results:
+    for label, result in results.items():
         assert np.allclose(
-            results[label].point,
+            result.point,
             answer[label].point,
             rtol=1e-5,
             atol=1e-5,
         )
         assert np.allclose(
-            results[label].lower,
+            result.lower,
             answer[label].lower,
             atol=3e-2,
         )
         assert np.allclose(
-            results[label].upper,
+            result.upper,
             answer[label].upper,
             atol=3e-2,
         )

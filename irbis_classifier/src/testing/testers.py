@@ -22,7 +22,7 @@ T = TypeVar('T', bound=Sequence[int])
 
 class ClassificationTesterInterface(ABC):
     @abstractmethod
-    def get_estimation_over_class(
+    def get_estimation_over_class(  # pylint: disable=too-many-positional-arguments
         self,
         metric: Callable[[T, T], float],
         y_true: T,
@@ -33,12 +33,11 @@ class ClassificationTesterInterface(ABC):
         pass
 
     @abstractmethod
-    def _get_class_estimations(
+    def _get_class_estimations(  # pylint: disable=too-many-positional-arguments
         self,
         metric: Callable[[T, T], float],
         y_true: npt.NDArray[np.int_],
         y_predicted: npt.NDArray[np.int_],
-        label: int,
         bootstrap_size: int = 10000,
         alpha: float = 0.95,
     ) -> MetricsEstimations:
@@ -46,7 +45,7 @@ class ClassificationTesterInterface(ABC):
 
 
 class ClassificationTester(ClassificationTesterInterface):
-    def get_estimation_over_class(
+    def get_estimation_over_class(  # pylint: disable=too-many-positional-arguments
         self,
         metric: Callable[[T, T], float],
         y_true: T,
@@ -66,7 +65,7 @@ class ClassificationTester(ClassificationTesterInterface):
         y_true_array: npt.NDArray[np.int_] = np.array(y_true)
         y_predicted_array: npt.NDArray[np.int_] = np.array(y_predicted)
 
-        estimations: dict[int, MetricsEstimations] = dict()
+        estimations: dict[int, MetricsEstimations] = {}
 
         unique_classes: list[int] = sorted(list(set(y_true)))
         for label in unique_classes:
@@ -96,7 +95,7 @@ class ClassificationTester(ClassificationTesterInterface):
 
         return estimations
 
-    def _get_class_estimations(
+    def _get_class_estimations(  # pylint: disable=too-many-positional-arguments
         self,
         metric: Callable[[T, T, Any], float],
         y_true: npt.NDArray[np.int_],

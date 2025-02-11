@@ -467,7 +467,7 @@ def create_image_grid(
     logger.success('Image grid was created')
 
 
-def create_barplot_with_confidence_intervals(
+def create_barplot_with_confidence_intervals(  # pylint: disable=too-many-positional-arguments
     f1_score_macro: float,
     metrics: dict[int, MetricsEstimations],
     metric_max_value: float,

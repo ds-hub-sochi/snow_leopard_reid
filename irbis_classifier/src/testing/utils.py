@@ -12,7 +12,7 @@ def test_model(
     model: nn.Module,
     bootstrap_size: int = 10000,
     alpha: float = 0.95
-) -> dict[int, MetricsEstimations]:
+) -> tuple[float, dict[int, MetricsEstimations]]:
     targets_lst: list[int] = []
     predicted_labels_lst: list[int] = []
 
@@ -38,10 +38,18 @@ def test_model(
 
     tester: ClassificationTester = ClassificationTester()
 
-    return tester.get_estimation_over_class(
+    f1_score_macro: float = f1_score(
+        y_true = targets_lst,
+        y_pred = predicted_labels_lst,
+        average = 'macro',
+    )
+
+    f1_score_over_classes: dict[int, MetricsEstimations] = tester.get_estimation_over_class(
         f1_score,
         targets_lst,
         predicted_labels_lst,
         bootstrap_size,
         alpha,
     )
+
+    return (f1_score_macro, f1_score_over_classes,)

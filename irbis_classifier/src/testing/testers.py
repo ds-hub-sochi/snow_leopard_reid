@@ -8,6 +8,7 @@ from loguru import logger
 import numpy as np
 import numpy.typing as npt
 import scipy.stats as sts
+from tqdm import tqdm
 
 
 @dataclass
@@ -68,7 +69,7 @@ class ClassificationTester(ClassificationTesterInterface):
         estimations: dict[int, MetricsEstimations] = {}
 
         unique_classes: list[int] = sorted(list(set(y_true)))
-        for label in unique_classes:
+        for label in tqdm(unique_classes):
             answer_indexes: npt.NDArray[np.int_] = (y_true_array == label).nonzero()[0]
             prediction_indexes: npt.NDArray[np.int_] = (y_predicted_array == label).nonzero()[0]
 

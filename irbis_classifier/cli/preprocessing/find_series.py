@@ -71,6 +71,11 @@ def construct_series(
     type=click.Path(exists=True),
     help='The path to the json file with the list of supported labels',
 )
+@click.option(
+    '--path_to_russian_to_english_mapping_json',
+    type=click.Path(exists=True),
+    help='The path to the json file with the russian to english mapping',
+)
 def find_series(
     path_to_data_dir: Path | str,
     path_to_save_dir: Path | str,
@@ -96,7 +101,6 @@ def find_series(
             path_to_data_dir / stage,
             path_to_unification_mapping_json,
             path_to_supported_labels_json,
-            path_to_russian_to_english_mapping_json,
             path_to_russian_to_english_mapping_json,
         )
         if current_stage_df is not None:

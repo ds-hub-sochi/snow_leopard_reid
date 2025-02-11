@@ -16,7 +16,6 @@ from torch.utils.data import DataLoader
 from torchvision import models
 
 from irbis_classifier.src.label_encoder import create_label_encoder, LabelEncoder
-from irbis_classifier.src.plots import create_barplot_with_confidence_intervals
 from irbis_classifier.src.training import (
     create_train_val_test_datasets,
     setup_experimet,
@@ -24,8 +23,6 @@ from irbis_classifier.src.training import (
     train_transforms,
     val_transfroms,
 )
-from irbis_classifier.src.testing.testers import MetricsEstimations
-from irbis_classifier.src.testing.utils import test_model
 
 
 @click.command()
@@ -56,7 +53,7 @@ from irbis_classifier.src.testing.utils import test_model
     type=click.Path(exists=True),
     help='The path to the json file with the russian to english mapping',
 )
-def start_training(  # pylint: disable=too-many-positional-arguments,too-many-locals
+def start_training(  # pylint: disable=too-many-positional-arguments,too-many-locals,too-many-arguments
     path_to_data_dir: str | Path,
     path_to_checkpoints_dir: str | Path,
     path_to_experiment_config: str | Path,

@@ -85,7 +85,7 @@ class TrainerInterface(ABC):
         pass
 
     @abstractmethod
-    def _logging_step(
+    def _logging_step(  # pylint: disable=too-many-positional-arguments
         self,
         logs: dict[str, float],
         label: str,
@@ -271,7 +271,7 @@ class Trainer(TrainerInterface):
             )
         )
 
-    def _logging_step(
+    def _logging_step(  # pylint: disable=too-many-positional-arguments
         self,
         logs: Logs,
         label: str,

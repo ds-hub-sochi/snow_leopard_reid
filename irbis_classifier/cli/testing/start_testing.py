@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import os
 from pathlib import Path
 
-import albumentations as A
 import click
 import torch
 from loguru import logger
@@ -38,7 +39,7 @@ from irbis_classifier.src.training.transforms import val_transfroms
     type=click.Path(exists=True),
     help='The path to the json file with the russian to english mapping',
 )
-def run_testing(
+def run_testing(  # pylint: disable=too-many-positional-arguments
     path_to_test_csv: str | Path,
     path_to_weight: str | Path,
     batch_size: int,

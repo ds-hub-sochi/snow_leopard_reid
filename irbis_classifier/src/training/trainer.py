@@ -14,6 +14,7 @@ from torch import autocast
 from torch import nn
 from tqdm import tqdm
 
+from irbis_classifier.src.label_encoder import LabelEncoder
 from irbis_classifier.src.utils import create_confusion_matrix
 
 
@@ -56,6 +57,7 @@ class TrainerInterface(ABC):
         device: torch.device,
         experiment: comet_ml.CometExperiment,
         model_label: str,
+        label_encoder: LabelEncoder,
     ) -> None:
         pass
 
@@ -89,6 +91,7 @@ class TrainerInterface(ABC):
         label: str,
         experiment: comet_ml.CometExperiment,
         epoch: int,
+        label_encoder: LabelEncoder,
     ) -> None:
         pass
 
@@ -125,6 +128,7 @@ class Trainer(TrainerInterface):
         device: torch.device,
         experiment: comet_ml.CometExperiment,
         model_label: str,
+        label_encoder: LabelEncoder,
     ) -> None:
         logger.info(f'training during {n_epochs} epochs has started')
 
@@ -146,6 +150,7 @@ class Trainer(TrainerInterface):
                 label,
                 experiment,
                 epoch,
+                label_encoder,
             )
 
             val_logs: EvalLogs = self._evaluation_step(
@@ -161,11 +166,13 @@ class Trainer(TrainerInterface):
                 label,
                 experiment,
                 epoch,
+                label_encoder,
             )
 
             self._saving_step(
                 model,
                 val_logs.f1_score_macro,
+                model_label,
             )
 
         logger.success('training has ended')
@@ -173,7 +180,7 @@ class Trainer(TrainerInterface):
     def _training_step(  # pylint: disable=too-many-positional-arguments
         self,
         model: torch.nn.Module,
-        optimizer: torch.optim.optimizer.Optimizer,
+        optimizer: torch.optim.Optimizer,
         criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
         scaler: torch.optim.GradScaler,
         train_dataloader: torch.utils.data.DataLoader,
@@ -270,6 +277,7 @@ class Trainer(TrainerInterface):
         label: str,
         experiment: comet_ml.CometExperiment,
         epoch: int,
+        label_encoder: LabelEncoder,
     ) -> None:
         if isinstance(logs, EvalLogs):
             experiment.log_confusion_matrix(
@@ -277,7 +285,7 @@ class Trainer(TrainerInterface):
                 step=epoch,
                 max_categories=len(logs.confusion_matrix),
                 max_examples_per_cell=max(max(logs.confusion_matrix[i]) for i in range(len(logs.confusion_matrix))),
-                labels=list(range(len(logs.confusion_matrix)))
+                labels=[label_encoder.get_label_by_index(i) for i in range(len(logs.confusion_matrix))],
             )
 
             delattr(logs, 'confusion_matrix')

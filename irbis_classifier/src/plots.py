@@ -13,12 +13,16 @@ from loguru import logger
 from matplotlib import pyplot as plt, rcParams
 from mpl_toolkits.axes_grid1 import ImageGrid
 
+from irbis_classifier.src.testing.utils import MetricsEstimations
+
 
 warnings.filterwarnings('ignore')
 
 SMALL_SIZE: int = 12
 MEDIUM_SIZE: int = 16
 BIGGER_SIZE: int = 20
+LARGE_SIZE: int = 34
+EXTREMELY_SUPER_LARGE_SIZE: int = 40
 
 plt.rc('font', size=SMALL_SIZE)
 plt.rc('axes', titlesize=SMALL_SIZE)
@@ -27,7 +31,11 @@ plt.rc('xtick', labelsize=SMALL_SIZE)
 plt.rc('ytick', labelsize=SMALL_SIZE)
 plt.rc('legend', fontsize=SMALL_SIZE)
 plt.rc('figure', titlesize=BIGGER_SIZE)
-rcParams.update({'figure.autolayout': True})
+rcParams.update(
+    {
+        'figure.autolayout': True,
+    },
+)
 
 
 def create_classes_pie_plot(
@@ -384,8 +392,8 @@ def create_sequence_length_histogram_comparison(  # pylint: disable=too-many-pos
             va='center',
             color='red' if difference < 0 else 'blue',
             fontweight='bold',
-            fontsize = 8,
-            rotation = 30,
+            fontsize=8,
+            rotation=30,
         )
 
     labels = [item.get_text() for item in ax.get_xticklabels()]
@@ -457,3 +465,89 @@ def create_image_grid(
         plt.savefig(save_dir / 'augmented_image_variants.png')  # type: ignore
 
     logger.success('Image grid was created')
+
+
+def create_barplot_with_confidence_intervals(
+    f1_score_macro: float,
+    metrics: dict[int, MetricsEstimations],
+    metric_max_value: float,
+    show: bool,
+    save: bool,
+    save_dir: str | Path | None,
+    labels: list[str],
+):
+    logger.info("barplot with metric's value over classes creation has started")
+
+    with sns.color_palette(
+        'deep',
+        len(metrics.keys()),
+    ):
+        _ = plt.figure(figsize=(len(metrics) * 2, len(metrics)))
+
+        plt.axhline(
+            y=metric_max_value,
+            zorder=0,
+            color='red',
+        )
+
+        _ = plt.bar(
+            x=list(metrics.keys()),
+            height=[metrics[key].point for key in metrics],
+            width=0.4,
+            yerr=np.array(
+                [
+                    (
+                        metrics[key].point - metrics[key].lower,
+                        metrics[key].upper - metrics[key].point
+                    ) for key in metrics
+                ],
+            ).T,
+            color='red',
+            align='center',
+            alpha=0.5,
+            zorder=3,
+        )
+
+        ax = plt.gca()
+        ax.set_axisbelow(True)
+
+        ax.grid(
+            linewidth=0.75,
+            zorder=0,
+        )
+        ax.grid(
+            which='minor',
+            linewidth=0.50,
+            zorder=0,
+        )
+        ax.minorticks_on()
+
+        plt.xticks(
+            range(len(list(metrics.keys()))),
+            labels,
+            rotation=45,
+            fontsize=LARGE_SIZE,
+        )
+
+        plt.yticks(
+            fontsize=EXTREMELY_SUPER_LARGE_SIZE,
+        )
+
+        plt.title(
+            f"Metric's value with confidence intervals \n f-score macro = {f1_score_macro:.3f}",
+            fontsize=EXTREMELY_SUPER_LARGE_SIZE,
+        )
+
+        if show:
+            plt.show()
+
+    if save and save_dir is not None:
+        save_dir = Path(save_dir).resolve()
+        save_dir.mkdir(
+            exist_ok=True,
+            parents=True,
+        )
+
+        plt.savefig(save_dir / 'metric_over_classes.png')  # type: ignore
+
+    logger.success("barplot with metric's value over classes was created")

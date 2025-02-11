@@ -60,6 +60,11 @@ class LabelEncoder:
             ),
             None,
         )
+    
+    def get_number_of_classes(
+        self,
+    ) -> int:
+        return len(self._supported_labels)
 
 
 def create_label_encoder(

@@ -49,6 +49,7 @@ class TrainerInterface(ABC):
         self,
         model: torch.nn.Module,
         optimizer: torch.optim.optimizer.Optimizer,
+        scheduler: torch.optim.lr_scheduler.LRScheduler | None,
         criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
         scaler: torch.optim.GradScaler,
         n_epochs: int,
@@ -119,7 +120,8 @@ class Trainer(TrainerInterface):
     def train(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         model: torch.nn.Module,
-        optimizer: torch.optim.optimizer.Optimizer,
+        optimizer: torch.optim.Optimizer,
+        scheduler: torch.optim.lr_scheduler.LRScheduler | None,
         criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
         scaler: torch.optim.GradScaler,
         n_epochs: int,
@@ -143,6 +145,9 @@ class Trainer(TrainerInterface):
                 train_dataloader,
                 device,
             )
+
+            if scheduler is not None:
+                scheduler.step()
 
             label = 'train'
             self._logging_step(

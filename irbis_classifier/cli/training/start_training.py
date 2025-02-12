@@ -145,6 +145,11 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
         lr=lr,
     )
 
+    scheduler: torch.optim.lr_scheduler.LRScheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer,
+        T_max=n_epochs,
+    )
+
     criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] = nn.CrossEntropyLoss()
 
     scaler: torch.amp.GradScaler = torch.amp.GradScaler()
@@ -165,6 +170,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     trainer.train(
         model,
         optimizer,
+        scheduler,
         criterion,
         scaler,
         n_epochs,

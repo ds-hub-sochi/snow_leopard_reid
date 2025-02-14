@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import os
+import random
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 
 import click
 import comet_ml
+import numpy as np
 import torch
 from loguru import logger
 from torch import nn
@@ -23,6 +25,13 @@ from irbis_classifier.src.training import (
     train_transforms,
     val_transfroms,
 )
+
+torch.manual_seed(123)
+torch.cuda.manual_seed(123)
+np.random.seed(123)
+random.seed(123)
+torch.backends.cudnn.enabled=False
+torch.backends.cudnn.deterministic=True
 
 
 @click.command()
@@ -53,6 +62,12 @@ from irbis_classifier.src.training import (
     type=click.Path(exists=True),
     help='The path to the json file with the russian to english mapping',
 )
+@click.option(
+    '--use_scheduler',
+    type=bool,
+    default=True,
+    help="should learning scheduler be used during trainig or not",
+)
 def start_training(  # pylint: disable=too-many-positional-arguments,too-many-locals,too-many-arguments
     path_to_data_dir: str | Path,
     path_to_checkpoints_dir: str | Path,
@@ -65,6 +80,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     path_to_unification_mapping_json: Path | str,
     path_to_supported_labels_json: Path | str,
     path_to_russian_to_english_mapping_json: Path | str,
+    use_scheduler: bool = True,
 ):
     path_to_data_dir = Path(path_to_data_dir).resolve()
 
@@ -73,7 +89,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     path_to_russian_to_english_mapping_json = Path(path_to_russian_to_english_mapping_json).resolve()
 
     path_to_checkpoints_dir = Path(path_to_checkpoints_dir).resolve()
-    path_to_checkpoints_dir = path_to_checkpoints_dir / datetime.today().strftime('%Y-%m-%d')
+    path_to_checkpoints_dir = path_to_checkpoints_dir / run_name / datetime.today().strftime('%Y-%m-%d')
     path_to_checkpoints_dir.mkdir(
         parents=True,
         exist_ok=True,
@@ -135,20 +151,18 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     )
     model = model.to(device)
 
-    if isinstance(model, nn.DataParallel):
-        model_label: str = model.module.__class__.__name__
-    else:
-        model_label = model.__class__.__name__
-
-    optimizer: torch.optim.Optimizer = torch.optim.Adam(
+    optimizer: torch.optim.Optimizer = torch.optim.AdamW(
         params=model.parameters(),
         lr=lr,
     )
 
-    scheduler: torch.optim.lr_scheduler.LRScheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer,
-        T_max=n_epochs,
-    )
+    if use_scheduler:
+        scheduler: torch.optim.lr_scheduler.LRScheduler | None = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer,
+            T_max=n_epochs,
+        )
+    else:
+        scheduler = None
 
     criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] = nn.CrossEntropyLoss()
 
@@ -178,8 +192,12 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
         val_dataloader,
         device,
         experiment,
-        model_label,
         label_encoder,
+    )
+
+    experiment.log_model(
+        run_name,
+        str(path_to_checkpoints_dir / 'best_model.pth'),
     )
 
     experiment.end()

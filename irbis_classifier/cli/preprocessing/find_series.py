@@ -20,6 +20,7 @@ def construct_series(
     path_to_data_dir: Path,
     path_to_unification_mapping_json: Path,
     path_to_supported_labels_json: Path,
+    path_to_russian_to_english_mapping_json: Path,
 ) -> pd.DataFrame | None:
     all_image_paths: list[Path] = list(path_to_data_dir.rglob('*.*'))
     all_image_paths = filter_non_images(all_image_paths)
@@ -45,6 +46,7 @@ def construct_series(
     label_encoder: LabelEncoder = create_label_encoder(
         path_to_unification_mapping_json,
         path_to_supported_labels_json,
+        path_to_russian_to_english_mapping_json,
     )
 
     df['unified_class'] = df['specie'].map(label_encoder.get_unified_label)
@@ -69,16 +71,22 @@ def construct_series(
     type=click.Path(exists=True),
     help='The path to the json file with the list of supported labels',
 )
+@click.option(
+    '--path_to_russian_to_english_mapping_json',
+    type=click.Path(exists=True),
+    help='The path to the json file with the russian to english mapping',
+)
 def find_series(
     path_to_data_dir: Path | str,
     path_to_save_dir: Path | str,
     path_to_unification_mapping_json: Path | str,
     path_to_supported_labels_json: Path | str,
-
+    path_to_russian_to_english_mapping_json: Path | str,
 ) -> None:
     path_to_data_dir = Path(path_to_data_dir).resolve()
     path_to_unification_mapping_json = Path(path_to_unification_mapping_json).resolve()
     path_to_supported_labels_json = Path(path_to_supported_labels_json).resolve()
+    path_to_russian_to_english_mapping_json = Path(path_to_russian_to_english_mapping_json).resolve()
 
     path_to_save_dir = Path(path_to_save_dir).resolve()
     path_to_save_dir.mkdir(
@@ -89,10 +97,11 @@ def find_series(
     stages: list[str] = [f.path.split('/')[-1] for f in os.scandir(path_to_data_dir) if Path(path_to_data_dir).is_dir()]
     for stage in stages:
         logger.info(f'processing {stage}')
-        current_stage_df: pd.DataFrame | None = construct_series(
+        current_stage_df: pd.DataFrame | None = construct_series(  # pylint: disable=too-many-function-args
             path_to_data_dir / stage,
             path_to_unification_mapping_json,
             path_to_supported_labels_json,
+            path_to_russian_to_english_mapping_json,
         )
         if current_stage_df is not None:
             current_stage_df.to_csv(

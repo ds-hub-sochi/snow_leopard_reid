@@ -25,6 +25,8 @@ from irbis_classifier.src.training import (
     train_transforms,
     val_transfroms,
 )
+from irbis_classifier.src.training.warmup_schedulers import LinearWarmupLR
+
 
 torch.manual_seed(123)
 torch.cuda.manual_seed(123)
@@ -68,6 +70,12 @@ torch.backends.cudnn.deterministic=True
     default=True,
     help="should learning scheduler be used during trainig or not",
 )
+@click.option(
+    '--warmup_epochs',
+    type=int,
+    default=None,
+    help="how many warmup epochs must be used",
+)
 def start_training(  # pylint: disable=too-many-positional-arguments,too-many-locals,too-many-arguments
     path_to_data_dir: str | Path,
     path_to_checkpoints_dir: str | Path,
@@ -81,6 +89,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     path_to_supported_labels_json: Path | str,
     path_to_russian_to_english_mapping_json: Path | str,
     use_scheduler: bool = True,
+    warmup_epochs: int | None = None,
 ):
     path_to_data_dir = Path(path_to_data_dir).resolve()
 
@@ -164,6 +173,16 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     else:
         scheduler = None
 
+    if warmup_epochs is not None:
+        warmup_scheduler: LinearWarmupLR | None = LinearWarmupLR(
+            optimizer,
+            warmup_epochs,
+            target_lr=lr,
+            initial_lr=1e-8,
+        )
+    else:
+        warmup_scheduler = None
+
     criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] = nn.CrossEntropyLoss()
 
     scaler: torch.amp.GradScaler = torch.amp.GradScaler()
@@ -185,6 +204,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
         model,
         optimizer,
         scheduler,
+        warmup_scheduler,
         criterion,
         scaler,
         n_epochs,

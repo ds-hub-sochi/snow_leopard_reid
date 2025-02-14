@@ -16,6 +16,7 @@ from tqdm import tqdm
 
 from irbis_classifier.src.label_encoder import LabelEncoder
 from irbis_classifier.src.utils import create_confusion_matrix
+from irbis_classifier.src.training import warmup_schedulers
 
 
 @dataclass
@@ -50,6 +51,7 @@ class TrainerInterface(ABC):
         model: torch.nn.Module,
         optimizer: torch.optim.optimizer.Optimizer,
         scheduler: torch.optim.lr_scheduler.LRScheduler | None,
+        warmup_scheduler: warmup_schedulers.LinearWarmupLR | None,
         criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
         scaler: torch.optim.GradScaler,
         n_epochs: int,
@@ -120,6 +122,7 @@ class Trainer(TrainerInterface):
         model: torch.nn.Module,
         optimizer: torch.optim.Optimizer,
         scheduler: torch.optim.lr_scheduler.LRScheduler | None,
+        warmup_scheduler: warmup_schedulers.LinearWarmupLR | None,
         criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
         scaler: torch.optim.GradScaler,
         n_epochs: int,
@@ -143,8 +146,11 @@ class Trainer(TrainerInterface):
                 device,
             )
 
-            if scheduler is not None:
-                scheduler.step()
+            if warmup_scheduler is not None and warmup_scheduler.warmup_epochs > epoch:
+                warmup_scheduler.step()
+            else:
+                if scheduler is not None:
+                    scheduler.step()
 
             label = 'train'
             self._logging_step(

@@ -26,7 +26,7 @@ class LinearWarmupLR(_LRScheduler):
             warmup_scheduler.step()
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-positional-arguments
         self,
         optimizer: Optimizer,
         warmup_epochs: int,

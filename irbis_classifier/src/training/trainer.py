@@ -148,8 +148,7 @@ class Trainer(TrainerInterface):
 
             if warmup_scheduler is not None and warmup_scheduler.warmup_epochs > epoch:
                 warmup_scheduler.step()
-            else:
-                if scheduler is not None:
+            elif scheduler is not None:
                     scheduler.step()
 
             label = 'train'

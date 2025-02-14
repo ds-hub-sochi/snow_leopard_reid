@@ -115,7 +115,7 @@ class ClassificationTester(ClassificationTesterInterface):
                 zip(y_true_bootstrapped, y_predicted_bootstrapped)
             ]
         )
-        std_estimation = np.std(
+        std_estimation: np.float32 = np.std(
             metric_estimations,
             ddof=1,
         )
@@ -125,7 +125,7 @@ class ClassificationTester(ClassificationTesterInterface):
             y_pred=y_predicted,
         )
 
-        normal_quantile: float = sts.norm.ppf((1 + alpha) / 2)
+        normal_quantile: np.float32 = sts.norm.ppf((1 + alpha) / 2)
 
         return MetricsEstimations(
             point_estimation,

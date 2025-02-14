@@ -33,7 +33,7 @@ class LinearWarmupLR(_LRScheduler):
         target_lr: float,
         initial_lr: float = 1e-8,
         last_epoch: int = -1,
-    ):  
+    ):
         self.warmup_epochs: int = warmup_epochs
         self.target_lr: float = target_lr
         self.initial_lr: float = initial_lr

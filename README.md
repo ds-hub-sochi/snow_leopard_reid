@@ -69,24 +69,26 @@ python ./irbis_classifier/cli/reports/test_augmentations.py \
 ```
 
 ```bash
-python ./irbis_classifier/cli/training/start_training.py \
+nohup python ./irbis_classifier/cli/training/start_training.py \
     --path_to_data_dir ./data/processed \
     --path_to_checkpoints_dir ./models \
     --path_to_experiment_config ./data/configs/experiment.json \
-    --run_name baseline \
+    --run_name baseline_scheduler_warmup \
     --batch_size 512 \
-    --n_epochs 60 \
-    --lr 1e-5 \
+    --n_epochs 30 \
+    --lr 1e-4 \
     --device_ids "0,1" \
     --path_to_unification_mapping_json ./data/configs/unification_mapping.json \
     --path_to_supported_labels_json ./data/configs/supported_classes.json \
-    --path_to_russian_to_english_mapping_json ./data/configs/russian_to_english_mapping.json
+    --path_to_russian_to_english_mapping_json ./data/configs/russian_to_english_mapping.json \
+    --use_scheduler True \
+    --warmup_epochs 5 &
 ```
 
 ```bash
 python ./irbis_classifier/cli/testing/start_testing.py \
     --path_to_test_csv ./data/processed/test.csv \
-    --path_to_weight ./models/2025-02-11/EfficientNet_best_model.pth \
+    --path_to_weight ./models/baseline_scheduler/2025-02-12/best_model.pth \
     --batch_size 256 \
     --bootstrap_size 100000 \
     --alpha 0.95 \

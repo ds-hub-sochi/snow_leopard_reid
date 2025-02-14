@@ -97,7 +97,7 @@ def run_testing(  # pylint: disable=too-many-positional-arguments
     for label_index, metric in test_metrics.items():
         logger.info(
             f'{label_encoder.get_label_by_index(label_index)}: ' +  
-            f'point estimations = {metric.point}, upper = {metric.upper}, lower = {metric.lower}',
+            f'point estimations = {metric.point:.4f}, upper = {metric.upper:.4f}, lower = {metric.lower:.4f}',
         )
 
     create_barplot_with_confidence_intervals(

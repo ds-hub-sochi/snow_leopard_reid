@@ -57,7 +57,6 @@ class TrainerInterface(ABC):
         val_dataloader: torch.utils.data.DataLoader,
         device: torch.device,
         experiment: comet_ml.CometExperiment,
-        model_label: str,
         label_encoder: LabelEncoder,
     ) -> None:
         pass
@@ -101,7 +100,6 @@ class TrainerInterface(ABC):
         self,
         model: nn.Module,
         metric_value: float,
-        model_label: str,
     ) -> None:
         pass
 
@@ -129,7 +127,6 @@ class Trainer(TrainerInterface):
         val_dataloader: torch.utils.data.DataLoader,
         device: torch.device,
         experiment: comet_ml.CometExperiment,
-        model_label: str,
         label_encoder: LabelEncoder,
     ) -> None:
         logger.info(f'training during {n_epochs} epochs has started')
@@ -177,7 +174,6 @@ class Trainer(TrainerInterface):
             self._saving_step(
                 model,
                 val_logs.f1_score_macro,
-                model_label,
             )
 
         logger.success('training has ended')
@@ -284,7 +280,10 @@ class Trainer(TrainerInterface):
         epoch: int,
         label_encoder: LabelEncoder,
     ) -> None:
-        if isinstance(logs, EvalLogs):
+        if isinstance(
+            logs,
+            EvalLogs,
+        ):
             experiment.log_confusion_matrix(
                 matrix=logs.confusion_matrix,
                 step=epoch,
@@ -293,7 +292,10 @@ class Trainer(TrainerInterface):
                 labels=[label_encoder.get_label_by_index(i) for i in range(len(logs.confusion_matrix))],
             )
 
-            delattr(logs, 'confusion_matrix')
+            delattr(
+                logs,
+                'confusion_matrix',
+            )
 
         for key, value in logs.__dict__.items():
             experiment.log_metric(
@@ -307,29 +309,34 @@ class Trainer(TrainerInterface):
         self,
         model: nn.Module,
         metric_value: float,
-        model_label: str,
     ) -> None:
         if self._bigger_is_better == (metric_value > self._checkpoint_metric):
             self._checkpoint_metric = metric_value
 
-            if isinstance(model, nn.DataParallel):
+            if isinstance(
+                model,
+                nn.DataParallel,
+            ):
                 torch.save(
                     model.module.state_dict(),
-                    self._path_to_checkpoints_dir / f'{model_label}_best_model.pth',
+                    self._path_to_checkpoints_dir / 'best_model.pth',
                 )
             else:
                 torch.save(
                     model.state_dict(),
-                    self._path_to_checkpoints_dir / f'{model_label}_best_model.pth',
+                    self._path_to_checkpoints_dir / 'best_model.pth',
                 )
 
-        if isinstance(model, nn.DataParallel):
+        if isinstance(
+            model,
+            nn.DataParallel,
+        ):
             torch.save(
                 model.module.state_dict(),
-                self._path_to_checkpoints_dir / f'{model_label}_last_model.pth',
+                self._path_to_checkpoints_dir / 'last_model.pth',
             )
         else:
             torch.save(
                 model.state_dict(),
-                self._path_to_checkpoints_dir / f'{model_label}_last_model.pth',
+                self._path_to_checkpoints_dir / 'last_model.pth',
             )

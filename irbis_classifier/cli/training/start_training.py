@@ -25,6 +25,7 @@ from irbis_classifier.src.training import (
     train_transforms,
     val_transfroms,
 )
+from irbis_classifier.src.training.losses import LossFactory
 from irbis_classifier.src.training.warmup_schedulers import LinearWarmupLR
 from irbis_classifier.src.training.weights import get_classes_counts, get_classes_weights
 
@@ -81,7 +82,13 @@ torch.backends.cudnn.deterministic=True
     '--use_weighted_loss',
     type=bool,
     default=False,
-    help="how many warmup epochs must be used",
+    help="use classes's weight to compute loss or not",
+)
+@click.option(
+    '--loss',
+    type=str,
+    default='CrossEntropyLoss',
+    help='which loss to use; for example, CrossEntropyLoss',
 )
 def start_training(  # pylint: disable=too-many-positional-arguments,too-many-locals,too-many-arguments
     path_to_data_dir: str | Path,
@@ -98,6 +105,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     use_scheduler: bool = True,
     warmup_epochs: int | None = None,
     use_weighted_loss: bool = False,
+    loss: str = 'CrossEntropyLoss',
 ):
     path_to_data_dir = Path(path_to_data_dir).resolve()
 
@@ -199,9 +207,21 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
             )
         ).to(device)
 
+    '''
     criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] = nn.CrossEntropyLoss(
         weight=weights if use_weighted_loss else None,
     )
+    '''
+
+    try:
+        criterion: nn.Module = LossFactory.get_loss(loss_name=loss)(
+            weight=weights if use_weighted_loss else None,
+        )
+    except ValueError as error:
+        logger.error(f'error during loss creating: {error}')
+        experiment.end()
+
+        return
 
     scaler: torch.amp.GradScaler = torch.amp.GradScaler()
 

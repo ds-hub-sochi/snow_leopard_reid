@@ -1,20 +1,29 @@
 from collections import OrderedDict
+from pathlib import Path
 
+import pandas as pd
 import torch
+from loguru import logger
 
 from irbis_classifier.src.training import AnimalDataset
 
 
 def get_classes_counts(
-    dataset: AnimalDataset,
+    dataset_csv: str | Path,
     n_classes: int,    
 ) -> OrderedDict[int, int]:
+    logger.info("processing classes' counts")
+
+    dataset_df: pd.DataFrame = pd.read_csv(dataset_csv)
+
     counts: OrderedDict[int, int] = {}
     for i in range(n_classes):
         counts[i] = 0
 
-    for _, label in dataset:
-        counts[label] += 1
+    for label in range(n_classes):
+        counts[label] += dataset_df[dataset_df.class_id == label].shape[0]
+
+    logger.success("classes' counts were processed")
 
     return counts
 

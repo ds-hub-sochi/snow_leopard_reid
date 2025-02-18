@@ -214,7 +214,10 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     '''
 
     try:
-        criterion: nn.Module = LossFactory.get_loss(loss_name=loss)(
+        criterion_type: type[nn.Module] = LossFactory.get_loss(loss_name=loss)
+        if use_weighted_loss and criterion_type == torch.nn.MultiMarginLoss:
+            weights *= label_encoder.get_number_of_classes()
+        criterion: torch.nn.Module = criterion_type(
             weight=weights if use_weighted_loss else None,
         )
     except ValueError as error:

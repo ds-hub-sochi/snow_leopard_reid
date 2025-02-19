@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 from collections import OrderedDict
 from pathlib import Path
 
 import pandas as pd
 import torch
 from loguru import logger
-
-from irbis_classifier.src.training import AnimalDataset
 
 
 def get_classes_counts(

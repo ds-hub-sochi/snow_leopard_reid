@@ -25,7 +25,7 @@ from irbis_classifier.src.training import (
     train_transforms,
     val_transfroms,
 )
-from irbis_classifier.src.training.losses import LossFactory
+from irbis_classifier.src.training.losses import LossFactory, FocalLoss
 from irbis_classifier.src.training.warmup_schedulers import LinearWarmupLR
 from irbis_classifier.src.training.weights import get_classes_counts, get_classes_weights
 
@@ -215,7 +215,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
 
     try:
         criterion_type: type[nn.Module] = LossFactory.get_loss(loss_name=loss)
-        if use_weighted_loss and criterion_type == torch.nn.MultiMarginLoss:
+        if use_weighted_loss and criterion_type in [torch.nn.MultiMarginLoss, FocalLoss]:
             weights *= label_encoder.get_number_of_classes()
         criterion: torch.nn.Module = criterion_type(
             weight=weights if use_weighted_loss else None,

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import random
-from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 
@@ -90,7 +89,7 @@ torch.backends.cudnn.deterministic=True
     default='CrossEntropyLoss',
     help='which loss to use; for example, CrossEntropyLoss',
 )
-def start_training(  # pylint: disable=too-many-positional-arguments,too-many-locals,too-many-arguments
+def start_training(  # pylint: disable=too-many-positional-arguments,too-many-locals,too-many-arguments,too-many-statements
     path_to_data_dir: str | Path,
     path_to_checkpoints_dir: str | Path,
     path_to_experiment_config: str | Path,
@@ -216,7 +215,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     try:
         criterion_type: type[nn.Module] = LossFactory.get_loss(loss_name=loss)
         if use_weighted_loss and criterion_type in [torch.nn.MultiMarginLoss, FocalLoss]:
-            weights *= label_encoder.get_number_of_classes()
+            weights *= label_encoder.get_number_of_classes()  # pylint: disable=undefined-variable
         criterion: torch.nn.Module = criterion_type(
             weight=weights if use_weighted_loss else None,
         )

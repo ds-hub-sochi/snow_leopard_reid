@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import random
-from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 
@@ -25,7 +24,9 @@ from irbis_classifier.src.training import (
     train_transforms,
     val_transfroms,
 )
+from irbis_classifier.src.training.losses import LossFactory, FocalLoss
 from irbis_classifier.src.training.warmup_schedulers import LinearWarmupLR
+from irbis_classifier.src.training.weights import get_classes_counts, get_classes_weights
 
 
 torch.manual_seed(123)
@@ -76,7 +77,19 @@ torch.backends.cudnn.deterministic=True
     default=None,
     help="how many warmup epochs must be used",
 )
-def start_training(  # pylint: disable=too-many-positional-arguments,too-many-locals,too-many-arguments
+@click.option(
+    '--use_weighted_loss',
+    type=bool,
+    default=False,
+    help="use classes's weight to compute loss or not",
+)
+@click.option(
+    '--loss',
+    type=str,
+    default='CrossEntropyLoss',
+    help='which loss to use; for example, CrossEntropyLoss',
+)
+def start_training(  # pylint: disable=too-many-positional-arguments,too-many-locals,too-many-arguments,too-many-statements
     path_to_data_dir: str | Path,
     path_to_checkpoints_dir: str | Path,
     path_to_experiment_config: str | Path,
@@ -90,6 +103,8 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     path_to_russian_to_english_mapping_json: Path | str,
     use_scheduler: bool = True,
     warmup_epochs: int | None = None,
+    use_weighted_loss: bool = False,
+    loss: str = 'CrossEntropyLoss',
 ):
     path_to_data_dir = Path(path_to_data_dir).resolve()
 
@@ -183,7 +198,26 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     else:
         warmup_scheduler = None
 
-    criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] = nn.CrossEntropyLoss()
+    if use_weighted_loss:
+        weights: torch.Tensor = get_classes_weights(
+            get_classes_counts(
+                path_to_data_dir / 'train.csv',
+                label_encoder.get_number_of_classes(),
+            )
+        ).to(device)
+
+    try:
+        criterion_type: type[nn.Module] = LossFactory.get_loss(loss_name=loss)
+        if use_weighted_loss and criterion_type in [torch.nn.MultiMarginLoss, FocalLoss]:
+            weights *= label_encoder.get_number_of_classes()  # pylint: disable=undefined-variable
+        criterion: torch.nn.Module = criterion_type(
+            weight=weights if use_weighted_loss else None,
+        )
+    except ValueError as error:
+        logger.error(f'error during loss creating: {error}')
+        experiment.end()
+
+        return
 
     scaler: torch.amp.GradScaler = torch.amp.GradScaler()
 

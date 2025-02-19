@@ -52,7 +52,7 @@ class TrainerInterface(ABC):
         optimizer: torch.optim.optimizer.Optimizer,
         scheduler: torch.optim.lr_scheduler.LRScheduler | None,
         warmup_scheduler: warmup_schedulers.LinearWarmupLR | None,
-        criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
+        criterion: nn.Module,
         scaler: torch.optim.GradScaler,
         n_epochs: int,
         train_dataloader: torch.utils.data.DataLoader,
@@ -80,7 +80,7 @@ class TrainerInterface(ABC):
     def _evaluation_step(
         self,
         model: torch.nn.Module,
-        criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
+        criterion: nn.Module,
         val_dataloader: torch.utils.data.DataLoader,
         device: torch.device,
     ) -> Logs:
@@ -187,7 +187,7 @@ class Trainer(TrainerInterface):
         self,
         model: torch.nn.Module,
         optimizer: torch.optim.Optimizer,
-        criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
+        criterion: nn.Module,
         scaler: torch.optim.GradScaler,
         train_dataloader: torch.utils.data.DataLoader,
         device: torch.device,
@@ -226,7 +226,7 @@ class Trainer(TrainerInterface):
     def _evaluation_step(
         self,
         model: torch.nn.Module,
-        criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
+        criterion: nn.Module,
         val_dataloader: torch.utils.data.DataLoader,
         device: torch.device,
     ) -> EvalLogs:

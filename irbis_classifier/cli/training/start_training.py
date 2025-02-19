@@ -206,12 +206,6 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
             )
         ).to(device)
 
-    '''
-    criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor] = nn.CrossEntropyLoss(
-        weight=weights if use_weighted_loss else None,
-    )
-    '''
-
     try:
         criterion_type: type[nn.Module] = LossFactory.get_loss(loss_name=loss)
         if use_weighted_loss and criterion_type in [torch.nn.MultiMarginLoss, FocalLoss]:

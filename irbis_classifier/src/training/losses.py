@@ -4,9 +4,9 @@ import inspect
 import sys
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from loguru import logger
+from torch import nn
 
 
 class FocalLoss(nn.Module):
@@ -47,7 +47,7 @@ class FocalLoss(nn.Module):
 
         if self._reduction == 'mean':
             return loss_value.mean()
-        elif self._reduction == 'sum':
+        if self._reduction == 'sum':
             return loss_value.sum()
 
         return loss_value
@@ -63,9 +63,9 @@ class LossFactory:
                 torch.nn,
                 loss_name,
             )
-        else:
-            for object_name, object in inspect.getmembers(sys.modules[__name__]):
-                if inspect.isclass(object) and object_name == loss_name:
-                    return object
+        
+        for object_name, obj in inspect.getmembers(sys.modules[__name__]):
+            if inspect.isclass(obj) and object_name == loss_name:
+                return obj
 
         raise ValueError(f"loss you've provided '{loss_name}' wasn't found")

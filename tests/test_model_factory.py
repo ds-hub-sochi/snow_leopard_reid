@@ -15,11 +15,11 @@ testdata = (
 
 
 @pytest.mark.parametrize('model_name,model_handwritten', testdata)
-def test_torchvision_models(
+def test_torchvision_models_weights_download(
     model_name: str,
     model_handwritten: nn.Module,
 ):
-    model_from_factory: nn.Module = Factory().get_model(model_name)
+    model_from_factory: nn.Module = Factory().get_model(model_name, None)
 
     model_from_factory_named_layers: dict[str, nn.Module] = dict(model_from_factory.named_modules())
     model_handwritten_named_layers: dict[str, nn.Module] = dict(model_handwritten.named_modules())

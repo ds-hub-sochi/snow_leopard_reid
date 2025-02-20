@@ -10,7 +10,7 @@ from torch import nn
 
 
 class FocalLoss(nn.Module):
-    def __init__(  # pylint: diable=too-many-positional-arguments
+    def __init__(  # pylint: disable=too-many-positional-arguments
         self,
         weight: torch.Tensor | None,
         label_smoothing: float = 0.0,

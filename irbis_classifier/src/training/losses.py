@@ -10,9 +10,10 @@ from torch import nn
 
 
 class FocalLoss(nn.Module):
-    def __init__(
+    def __init__(  # pylint: disable=too-many-positional-arguments
         self,
         weight: torch.Tensor | None,
+        label_smoothing: float = 0.0,
         alpha: float = 1.0,
         gamma: float = 2.0,
         reduction: str = 'mean',
@@ -20,6 +21,7 @@ class FocalLoss(nn.Module):
         super().__init__()
 
         self._weight: torch.Tensor | None = weight
+        self._label_smoothing: float = label_smoothing
         self._alpha: float = alpha
         self._gamma: float = gamma
 
@@ -39,6 +41,7 @@ class FocalLoss(nn.Module):
             input=inputs,
             target=targets,
             weight=self._weight,
+            label_smoothing=self._label_smoothing,
             reduction='none'
         )
         p_t: torch.Tensor = torch.exp(-ce_loss)

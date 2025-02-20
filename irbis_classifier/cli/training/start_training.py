@@ -89,6 +89,12 @@ torch.backends.cudnn.deterministic=True
     default='CrossEntropyLoss',
     help='which loss to use; for example, CrossEntropyLoss',
 )
+@click.option(
+    '--label_smoothing',
+    type=float,
+    default=0.0,
+    help='label smoothing value',
+)
 def start_training(  # pylint: disable=too-many-positional-arguments,too-many-locals,too-many-arguments,too-many-statements
     path_to_data_dir: str | Path,
     path_to_checkpoints_dir: str | Path,
@@ -105,6 +111,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     warmup_epochs: int | None = None,
     use_weighted_loss: bool = False,
     loss: str = 'CrossEntropyLoss',
+    label_smoothing: float = 0.0,
 ):
     path_to_data_dir = Path(path_to_data_dir).resolve()
 
@@ -212,6 +219,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
             weights *= label_encoder.get_number_of_classes()  # pylint: disable=undefined-variable
         criterion: torch.nn.Module = criterion_type(
             weight=weights if use_weighted_loss else None,
+            label_smoothing=label_smoothing,
         )
     except ValueError as error:
         logger.error(f'error during loss creating: {error}')

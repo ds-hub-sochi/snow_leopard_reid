@@ -8,9 +8,9 @@ import torch
 from loguru import logger
 from torch import nn
 from torch.utils.data import DataLoader
-from torchvision import models
 
 from irbis_classifier.src.label_encoder import create_label_encoder, LabelEncoder
+from irbis_classifier.src.models.factory import Factory
 from irbis_classifier.src.plots import create_barplot_with_confidence_intervals
 from irbis_classifier.src.testing.utils import test_model
 from irbis_classifier.src.training.datasets import AnimalDataset
@@ -19,6 +19,7 @@ from irbis_classifier.src.training.transforms import val_transfroms
 
 @click.command()
 @click.option('--path_to_test_csv', type=click.Path(exists=True), help='path to csv-file with test data')
+@click.option('--model_name', type=str, help ="model name")
 @click.option('--path_to_weight', type=click.Path(exists=True), help ="path to model's weights")
 @click.option('--batch_size', type=int, help ="batch size to use; better be training batch size / number of gpus")
 @click.option('--bootstrap_size', type=int, help='size of a bootstrapped sample')
@@ -39,8 +40,9 @@ from irbis_classifier.src.training.transforms import val_transfroms
     type=click.Path(exists=True),
     help='The path to the json file with the russian to english mapping',
 )
-def run_testing(  # pylint: disable=too-many-positional-arguments
+def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-arguments
     path_to_test_csv: str | Path,
+    model_name: str,
     path_to_weight: str | Path,
     batch_size: int,
     bootstrap_size: int,
@@ -64,9 +66,8 @@ def run_testing(  # pylint: disable=too-many-positional-arguments
 
     device: torch.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-    model: nn.Module = models.efficientnet_b7(weights = models.EfficientNet_B7_Weights.IMAGENET1K_V1)
-    model.classifier[1] = nn.Linear(
-        model.classifier[1].in_features,
+    model: nn.Module = Factory.build_model(
+        model_name,
         label_encoder.get_number_of_classes(),
     )
     model = model.to(device)

@@ -14,9 +14,9 @@ import torch
 from loguru import logger
 from torch import nn
 from torch.utils.data import DataLoader
-from torchvision import models
 
 from irbis_classifier.src.label_encoder import create_label_encoder, LabelEncoder
+from irbis_classifier.src.models.factory import Factory
 from irbis_classifier.src.training import (
     create_train_val_test_datasets,
     setup_experimet,
@@ -45,6 +45,11 @@ torch.backends.cudnn.deterministic=True
     help='path to dir where model checkpoint will be stored',
 )
 @click.option('--path_to_experiment_config', type=click.Path(exists=True), help='path to experoment config json file')
+@click.option(
+    '--model_name',
+    type=str,
+    help='model you want to use',
+)
 @click.option('--run_name', type=str, help='name of a run in the comet reports')
 @click.option('--batch_size', type=int, help='batch size you want to use; please note that DataParallel is used')
 @click.option('--n_epochs', type=int, help='the duration of training in epochs')
@@ -99,6 +104,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     path_to_data_dir: str | Path,
     path_to_checkpoints_dir: str | Path,
     path_to_experiment_config: str | Path,
+    model_name: str,
     run_name: str,
     batch_size: int,
     n_epochs: int,
@@ -171,11 +177,16 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
 
     device: torch.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-    model: nn.Module = models.efficientnet_b7(weights=models.EfficientNet_B7_Weights.IMAGENET1K_V1)
-    model.classifier[1] = nn.Linear(
-        model.classifier[1].in_features,
-        26,
-    )
+    try:
+        model: nn.Module = Factory.build_model(
+            model_name,
+            label_encoder.get_number_of_classes(),
+        )
+    except ValueError as error:
+        logger.error(f'error duting model creating: {error}')
+
+        return
+
     model = nn.DataParallel(
         model,
         device_ids=device_ids_list,

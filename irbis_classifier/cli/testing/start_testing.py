@@ -40,7 +40,7 @@ from irbis_classifier.src.training.transforms import val_transfroms
     type=click.Path(exists=True),
     help='The path to the json file with the russian to english mapping',
 )
-def run_testing(  # pylint: disable=too-many-positional-arguments
+def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-arguments
     path_to_test_csv: str | Path,
     model_name: str,
     path_to_weight: str | Path,

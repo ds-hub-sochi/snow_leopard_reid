@@ -19,13 +19,13 @@ def test_torchvision_models_weights_download(
     model_name: str,
     model_handwritten: nn.Module,
 ):
-    model_from_factory: nn.Module = Factory().get_model(model_name, None)
+    model_from_factory: nn.Module = Factory().build_model(model_name, None)
 
     model_from_factory_named_layers: dict[str, nn.Module] = dict(model_from_factory.named_modules())
     model_handwritten_named_layers: dict[str, nn.Module] = dict(model_handwritten.named_modules())
 
     for name, layer in model_from_factory_named_layers.items():
-        if isinstance(layer, nn.Linear) or isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Conv1d):
+        if isinstance(layer, (nn.Conv1d, nn.Conv2d, nn.Linear)):
             print(layer.bias)
             assert torch.allclose(
                 layer.weight,

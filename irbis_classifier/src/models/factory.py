@@ -25,4 +25,4 @@ class Factory:
 
             return model
 
-        raise ValueError("check the model name you've provided; it wasn't found")
+        raise ValueError("check the model name you've provided: it wasn't found")

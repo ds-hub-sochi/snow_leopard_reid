@@ -245,10 +245,10 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     else:
         warmup_scheduler = None
 
-    kwargs = {}
-
-    kwargs['n_classes'] = label_encoder.get_number_of_classes()
-    kwargs['label_smoothing'] = label_smoothing
+    kwargs = {
+        'n_classes': label_encoder.get_number_of_classes(),
+        'label_smoothing': label_smoothing,
+    }
 
     if use_weighted_loss:
         weight: torch.Tensor = get_classes_weights(

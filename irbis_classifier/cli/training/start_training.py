@@ -24,7 +24,7 @@ from irbis_classifier.src.training import (
     train_transforms,
     val_transfroms,
 )
-from irbis_classifier.src.training.losses import LossFactory, FocalLoss
+from irbis_classifier.src.training.losses import LossFactory
 from irbis_classifier.src.training.warmup_schedulers import LinearWarmupLR
 from irbis_classifier.src.training.weights import get_classes_counts, get_classes_weights
 
@@ -245,20 +245,24 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     else:
         warmup_scheduler = None
 
+    kwargs = {}
+
+    kwargs['n_classes'] = label_encoder.get_number_of_classes()
+    kwargs['label_smoothing'] = label_smoothing
+
+    if use_weighted_loss:
+        weight: torch.Tensor = get_classes_weights(
+            get_classes_counts(
+                path_to_data_dir / 'train.csv',
+                label_encoder.get_number_of_classes(),
+            )
+        ).to(device)
+        kwargs['weight'] = weight
+
     try:
-        criterion_type: type[nn.Module] = LossFactory.get_loss(loss_name=loss)
-        if use_weighted_loss:
-            weights: torch.Tensor = get_classes_weights(
-                get_classes_counts(
-                    path_to_data_dir / 'train.csv',
-                    label_encoder.get_number_of_classes(),
-                )
-            ).to(device)
-            if criterion_type in [torch.nn.MultiMarginLoss, FocalLoss]:
-                weights *= label_encoder.get_number_of_classes()
-        criterion: torch.nn.Module = criterion_type(
-            weight=weights if use_weighted_loss else None,
-            label_smoothing=label_smoothing,
+        criterion: torch.nn.Module = LossFactory().build_loss_funcion(
+            loss_name=loss,
+            **kwargs,
         )
     except ValueError as error:
         logger.error(f'error during loss creating: {error}')
@@ -305,7 +309,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
         run_name,
         str(path_to_checkpoints_dir / 'last_model.pth'),
     )
-    
+
     experiment.end()
 
 

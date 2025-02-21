@@ -20,17 +20,17 @@ class FocalLoss(nn.Module):
     ):
         super().__init__()
 
-        self._weight: torch.Tensor | None = weight
-        self._label_smoothing: float = label_smoothing
-        self._alpha: float = alpha
-        self._gamma: float = gamma
+        self.weight: torch.Tensor | None = weight
+        self.label_smoothing: float = label_smoothing
+        self.alpha: float = alpha
+        self.gamma: float = gamma
 
         if reduction not in {'mean', 'none', 'sum'}:
             logger.error("error during FocalLoss creating: check your 'reduction' parameters")
 
             raise ValueError("'reduction' must be one of {'mean', 'none', 'sum'}")
 
-        self._reduction: str = reduction
+        self.reduction: str = reduction
 
     def forward(
         self,
@@ -40,25 +40,25 @@ class FocalLoss(nn.Module):
         ce_loss: torch.Tensor = F.cross_entropy(
             input=inputs,
             target=targets,
-            weight=self._weight,
-            label_smoothing=self._label_smoothing,
+            weight=self.weight,
+            label_smoothing=self.label_smoothing,
             reduction='none'
         )
         p_t: torch.Tensor = torch.exp(-ce_loss)
 
-        loss_value: torch.Tensor = (self._alpha * (1 - p_t) ** self._gamma) * ce_loss
+        loss_value: torch.Tensor = (self.alpha * (1 - p_t) ** self.gamma) * ce_loss
 
-        if self._reduction == 'mean':
+        if self.reduction == 'mean':
             return loss_value.mean()
-        if self._reduction == 'sum':
+        if self.reduction == 'sum':
             return loss_value.sum()
 
         return loss_value
 
 
 class LossFactory:
-    @staticmethod
-    def get_loss(
+    def _get_loss_class(
+        self,
         loss_name: str,
     ) -> type[torch.nn.Module]:
         if hasattr(torch.nn, loss_name):
@@ -72,3 +72,24 @@ class LossFactory:
                 return obj
 
         raise ValueError(f"loss you've provided '{loss_name}' wasn't found")
+    
+    def build_loss_funcion(
+        self,
+        loss_name: str,
+        **kwargs,
+    ) -> torch.nn.Module:
+        try:
+            loss_cls: type[torch.nn.Module] = self._get_loss_class(loss_name)
+        except ValueError as error:
+            raise error
+        
+        if 'weight' in kwargs and loss_cls in [torch.nn.MultiMarginLoss, FocalLoss]:
+            kwargs['weight'] *= kwargs['n_classes']
+
+        init_signature = inspect.signature(loss_cls.__init__)
+    
+        filtered_kwargs = {
+            key: value for key, value in kwargs.items() if key in init_signature.parameters
+        }
+
+        return loss_cls(**filtered_kwargs)

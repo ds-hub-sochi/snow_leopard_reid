@@ -38,23 +38,51 @@ torch.backends.cudnn.deterministic=True
 
 
 @click.command()
-@click.option('--path_to_data_dir', type=click.Path(exists=True), help='path to dir with train/val/test csv files')
+@click.option(
+    '--path_to_data_dir',
+    type=click.Path(exists=True),
+    help='path to dir with train/val/test csv files',
+)
 @click.option(
     '--path_to_checkpoints_dir',
     type=click.Path(exists=True),
     help='path to dir where model checkpoint will be stored',
 )
-@click.option('--path_to_experiment_config', type=click.Path(exists=True), help='path to experoment config json file')
+@click.option(
+    '--path_to_experiment_config',
+    type=click.Path(exists=True),
+    help='path to experoment config json file',
+)
 @click.option(
     '--model_name',
     type=str,
     help='model you want to use',
 )
-@click.option('--run_name', type=str, help='name of a run in the comet reports')
-@click.option('--batch_size', type=int, help='batch size you want to use; please note that DataParallel is used')
-@click.option('--n_epochs', type=int, help='the duration of training in epochs')
-@click.option('--lr', type=float, help='learning rate you want to setup for your optimize; exponential way is OK')
-@click.option('--device_ids', type=str, help='ids of the devices you want to as a comma separated string; ex. "0,1"')
+@click.option(
+    '--run_name',
+    type=str,
+    help='name of a run in the comet reports',
+)
+@click.option(
+    '--batch_size',
+    type=int,
+    help='batch size you want to use; please note that DataParallel is used',
+)
+@click.option(
+    '--n_epochs',
+    type=int,
+    help='the duration of training in epochs',
+)
+@click.option(
+    '--lr',
+    type=float,
+    help='learning rate you want to setup for your optimize; exponential way is OK',
+)
+@click.option(
+    '--device_ids',
+    type=str,
+    help='ids of the devices you want to as a comma separated string; ex. "0,1"',
+)
 @click.option(
     '--path_to_unification_mapping_json',
     type=click.Path(exists=True),
@@ -141,7 +169,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     try:
         device_ids_list: list[int] = [int(id) for id in device_ids.split(',')]
     except ValueError:
-        logger.error('check device_ids you have passed; it must be a comma separated string')
+        logger.error('check device_ids you have passed; it must be a comma separated string like "0,1"')
 
         return
 
@@ -150,8 +178,8 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
             path_to_experiment_config,
             run_name,
         )
-    except TypeError as e:
-        logger.error(f"error during experimet setup; please check your config's fields: {e}")
+    except TypeError as error:
+        logger.error(f"error during experimet setup; please check your config's fields: {error}")
 
         return
 
@@ -175,7 +203,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
         num_workers=os.cpu_count(),
     )
 
-    device: torch.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    device: torch.device = torch.device(f'cuda:{device_ids_list[0]}' if torch.cuda.is_available() else 'cpu')
 
     try:
         model: nn.Module = Factory.build_model(
@@ -184,6 +212,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
         )
     except ValueError as error:
         logger.error(f'error duting model creating: {error}')
+        experiment.end()
 
         return
 
@@ -216,18 +245,17 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     else:
         warmup_scheduler = None
 
-    if use_weighted_loss:
-        weights: torch.Tensor = get_classes_weights(
-            get_classes_counts(
-                path_to_data_dir / 'train.csv',
-                label_encoder.get_number_of_classes(),
-            )
-        ).to(device)
-
     try:
         criterion_type: type[nn.Module] = LossFactory.get_loss(loss_name=loss)
-        if use_weighted_loss and criterion_type in [torch.nn.MultiMarginLoss, FocalLoss]:
-            weights *= label_encoder.get_number_of_classes()  # pylint: disable=undefined-variable
+        if use_weighted_loss:
+            weights: torch.Tensor = get_classes_weights(
+                get_classes_counts(
+                    path_to_data_dir / 'train.csv',
+                    label_encoder.get_number_of_classes(),
+                )
+            ).to(device)
+            if criterion_type in [torch.nn.MultiMarginLoss, FocalLoss]:
+                weights *= label_encoder.get_number_of_classes()
         criterion: torch.nn.Module = criterion_type(
             weight=weights if use_weighted_loss else None,
             label_smoothing=label_smoothing,
@@ -273,6 +301,11 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
         str(path_to_checkpoints_dir / 'best_model.pth'),
     )
 
+    experiment.log_model(
+        run_name,
+        str(path_to_checkpoints_dir / 'last_model.pth'),
+    )
+    
     experiment.end()
 
 

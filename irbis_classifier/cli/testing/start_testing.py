@@ -66,7 +66,10 @@ def run_testing(  # pylint: disable=too-many-positional-arguments
 
     device: torch.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-    model: nn.Module = Factory.get_model(model_name, label_encoder.get_number_of_classes())
+    model: nn.Module = Factory.build_model(
+        model_name,
+        label_encoder.get_number_of_classes(),
+    )
     model = model.to(device)
     model.load_state_dict(torch.load(path_to_weight))
     model.eval()

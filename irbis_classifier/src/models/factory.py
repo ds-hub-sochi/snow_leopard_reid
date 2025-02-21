@@ -3,12 +3,14 @@ from __future__ import annotations
 import torch
 from torchvision import models
 
+from irbis_classifier.src.models.utils import replace_last_linear
+
 
 class Factory:
     @staticmethod
-    def get_model(
+    def build_model(
         model_name: str,
-        n_classes: int | None,     
+        n_classes: int | None,
     ) -> torch.nn.Module | None:
         model: torch.nn.Module | None = None
         if hasattr(models, model_name.lower()):
@@ -16,21 +18,11 @@ class Factory:
 
         if model is not None:
             if n_classes is not None:
-                if hasattr(model, 'classifier'):
-                    classifier_layers: list[torch.nn.Module] = list(model.classifier.modules())
+                return replace_last_linear(
+                    module=model,
+                    n_classes=n_classes,
+                )
 
-                    for i in range(len(classifier_layers) - 1, -1, -1):
-                        # print(classifier_layers[i])
-                        if isinstance(classifier_layers[i], torch.nn.Linear):
-                            classifier_layers[i] = torch.nn.Linear(
-                                classifier_layers[i].in_features,
-                                n_classes,
-                            )
+            return model
 
-                            model.classifier = torch.nn.Sequential(
-                                *classifier_layers,
-                            )
-
-                            return model
-                        
         raise ValueError("check the model name you've provided; it wasn't found")

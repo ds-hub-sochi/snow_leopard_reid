@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 from collections.abc import Sequence
 from pathlib import Path
 from random import sample
 
 import pandas as pd
+import torch
+from loguru import logger
 
 
 def filter_non_images(image_paths: list[Path]) -> list[Path]:
@@ -47,3 +51,14 @@ def create_confusion_matrix(
         confision_matrix[true_target][predicted_target] += 1
 
     return confision_matrix
+
+
+def save_model_as_traced(
+    model: torch.nn.Module,
+    sample_input: torch.Tensor,
+    save_path: str | Path,
+) -> None:
+    traced_model: torch.jit.ScriptModule = torch.jit.trace(model, sample_input)
+    traced_model.save(save_path)
+
+    logger.success('model saved is traced model')

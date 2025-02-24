@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 
 import click
@@ -39,7 +41,7 @@ def run_saving(
     path_to_supported_labels_json: Path | str,
     path_to_russian_to_english_mapping_json: Path | str,
     path_to_traced_model_checkpoint: Path | str,
-) -> None:
+) -> None:  # pylint: disable=too-many-positional-arguments
     path_to_unification_mapping_json = Path(path_to_unification_mapping_json).resolve()
     path_to_supported_labels_json = Path(path_to_supported_labels_json).resolve()
     path_to_russian_to_english_mapping_json = Path(path_to_russian_to_english_mapping_json).resolve()

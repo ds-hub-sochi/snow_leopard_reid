@@ -34,14 +34,14 @@ from irbis_classifier.src.utils import save_model_as_traced
     type=click.Path(),
     help='The path to the json file with the russian to english mapping',
 )
-def run_saving(
+def run_saving(  # pylint: disable=too-many-positional-arguments
     model_name: str,
     path_to_weight: str | Path,
     path_to_unification_mapping_json: Path | str,
     path_to_supported_labels_json: Path | str,
     path_to_russian_to_english_mapping_json: Path | str,
     path_to_traced_model_checkpoint: Path | str,
-) -> None:  # pylint: disable=too-many-positional-arguments
+) -> None:
     path_to_unification_mapping_json = Path(path_to_unification_mapping_json).resolve()
     path_to_supported_labels_json = Path(path_to_supported_labels_json).resolve()
     path_to_russian_to_english_mapping_json = Path(path_to_russian_to_english_mapping_json).resolve()

@@ -62,7 +62,7 @@ from irbis_classifier.src.training.transforms import get_val_transforms
     type=int,
     default=224,
 )
-def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-arguments
+def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-arguments,too-many-locals
     path_to_test_csv: str | Path,
     model_name: str,
     path_to_weight: str | Path,

@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import albumentations as A
 
 
 def get_val_transforms(
-    mean: tuple[float, float, float] | list[float] = [0.485, 0.456, 0.406],
-    std: tuple[float, float, float] | list[float] = [0.229, 0.224, 0.225],
+    mean: tuple[float, float, float] | list[float] = (0.485, 0.456, 0.406),
+    std: tuple[float, float, float] | list[float] = (0.229, 0.224, 0.225),
     max_size: int = 256,
     resize: int = 224,
 ) -> A.Compose:
@@ -40,8 +42,8 @@ def get_val_transforms(
 
 
 def get_train_transforms(
-    mean: tuple[float, float, float] | list[float] = [0.485, 0.456, 0.406],
-    std: tuple[float, float, float] | list[float] = [0.229, 0.224, 0.225],
+    mean: tuple[float, float, float] | list[float] = (0.485, 0.456, 0.406),
+    std: tuple[float, float, float] | list[float] = (0.229, 0.224, 0.225),
     max_size: int = 256,
     resize: int = 224,
 ) -> A.Compose:

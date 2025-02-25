@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import timm
 import torch
 from torchvision import models
 
@@ -15,6 +16,14 @@ class Factory:
         model: torch.nn.Module | None = None
         if hasattr(models, model_name.lower()):
             model: torch.nn.Module = getattr(models, model_name.lower())(weights='IMAGENET1K_V1')
+        else:
+            try:
+                model = timm.create_model(
+                    model_name=model_name,
+                    pretrained=True,
+                )
+            except RuntimeError:
+                model = None
 
         if model is not None:
             if n_classes is not None:

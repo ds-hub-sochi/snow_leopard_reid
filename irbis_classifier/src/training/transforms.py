@@ -4,24 +4,26 @@ import albumentations as A
 def get_val_transforms(
     mean: tuple[float, float, float] | list[float] = [0.485, 0.456, 0.406],
     std: tuple[float, float, float] | list[float] = [0.229, 0.224, 0.225],
+    max_size: int = 256,
+    resize: int = 224,
 ) -> A.Compose:
     val_transfroms: A.Compose = A.Compose(
         [
             A.LongestMaxSize(
-                max_size=256,
+                max_size=max_size,
                 p=1.0,
             ),
             A.PadIfNeeded(
-                min_height=256,
-                min_width=256,
+                min_height=max_size,
+                min_width=max_size,
                 position='center',
                 border_mode=0,
                 fill=0,
                 p=1.0,
             ),
             A.Resize(
-                height=224,
-                width=224,
+                height=resize,
+                width=resize,
                 p=1.0,
             ),
             A.Normalize(
@@ -40,11 +42,13 @@ def get_val_transforms(
 def get_train_transforms(
     mean: tuple[float, float, float] | list[float] = [0.485, 0.456, 0.406],
     std: tuple[float, float, float] | list[float] = [0.229, 0.224, 0.225],
+    max_size: int = 256,
+    resize: int = 224,
 ) -> A.Compose:
     train_transforms: A.Compose = A.Compose(
         [
             A.LongestMaxSize(
-                max_size=256,
+                max_size=max_size,
                 p=1.0,
             ),
             A.ToGray(
@@ -122,8 +126,8 @@ def get_train_transforms(
                 p=0.85,
             ),
             A.RandomCrop(
-                height=224,
-                width=224,
+                height=resize,
+                width=resize,
                 pad_if_needed=True,
                 border_mode=0,
                 fill=0,

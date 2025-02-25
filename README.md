@@ -88,7 +88,9 @@ nohup python ./irbis_classifier/cli/training/start_training.py \
     --loss CrossEntropyLoss \
     --label_smoothing 0.05 \
     --mean "0.485,0.456,0.406" \
-    --std "0.229,0.224,0.225" &
+    --std "0.229,0.224,0.225" \
+    --max_size 256 \
+    --resize 224 &
 ```
 
 ```bash
@@ -102,7 +104,11 @@ python ./irbis_classifier/cli/testing/start_testing.py \
     --path_to_save_dir ./reports/figures \
     --path_to_unification_mapping_json ./data/configs/unification_mapping.json \
     --path_to_supported_labels_json ./data/configs/supported_classes.json \
-    --path_to_russian_to_english_mapping_json ./data/configs/russian_to_english_mapping.json
+    --path_to_russian_to_english_mapping_json ./data/configs/russian_to_english_mapping.json \
+    --mean "0.485,0.456,0.406" \
+    --std "0.229,0.224,0.225" \
+    --max_size 256 \
+    --resize 224
 ```
 
 ```bash

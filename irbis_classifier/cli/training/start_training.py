@@ -21,8 +21,8 @@ from irbis_classifier.src.training import (
     create_train_val_test_datasets,
     setup_experimet,
     Trainer,
-    train_transforms,
-    val_transfroms,
+    get_train_transforms,
+    get_val_transforms,
 )
 from irbis_classifier.src.training.losses import LossFactory
 from irbis_classifier.src.training.warmup_schedulers import LinearWarmupLR
@@ -128,6 +128,18 @@ torch.backends.cudnn.deterministic=True
     default=0.0,
     help='label smoothing value',
 )
+@click.option(
+    '--mean',
+    type=str,
+    default="0.485,0.456,0.406",
+    help='normalization mean',
+)
+@click.option(
+    '--std',
+    type=str,
+    default='0.229,0.224,0.225',
+    help='normalization mean',
+)
 def start_training(  # pylint: disable=too-many-positional-arguments,too-many-locals,too-many-arguments,too-many-statements
     path_to_data_dir: str | Path,
     path_to_checkpoints_dir: str | Path,
@@ -146,6 +158,8 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     use_weighted_loss: bool = False,
     loss: str = 'CrossEntropyLoss',
     label_smoothing: float = 0.0,
+    mean='0.485,0.456,0.406',
+    std='0.229,0.224,0.225',
 ):
     path_to_data_dir = Path(path_to_data_dir).resolve()
 
@@ -172,6 +186,14 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
         logger.error('check device_ids you have passed; it must be a comma separated string like "0,1"')
 
         return
+    
+    try:
+        mean_lst: list[float] = [float(value) for value in mean.split(',')]
+        std_lst: list[float] = [float(value) for value in std.split(',')]
+    except ValueError:
+        logger.error('check mean and std you have passed; it most be a comma separated string like "0.1,0.2,0.3"')
+
+        return
 
     try:
         experiment: comet_ml.CometExperiment = setup_experimet(
@@ -185,8 +207,14 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
 
     train_dataset, val_dataset, _ = create_train_val_test_datasets(
         path_to_data_dir,
-        train_transforms=train_transforms,
-        val_transforms=val_transfroms,
+        train_transforms=get_train_transforms(
+            mean=mean_lst,
+            std=std_lst,
+        ),
+        val_transforms=get_val_transforms(
+            mean=mean_lst,
+            std=std_lst,
+        ),
     )
 
     train_dataloader: DataLoader = DataLoader(

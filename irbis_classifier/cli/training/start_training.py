@@ -140,6 +140,16 @@ torch.backends.cudnn.deterministic=True
     default='0.229,0.224,0.225',
     help='normalization mean',
 )
+@click.option(
+    '--max_size',
+    type=int,
+    default=256,
+)
+@click.option(
+    '--resize',
+    type=int,
+    default=224,
+)
 def start_training(  # pylint: disable=too-many-positional-arguments,too-many-locals,too-many-arguments,too-many-statements
     path_to_data_dir: str | Path,
     path_to_checkpoints_dir: str | Path,
@@ -160,6 +170,8 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     label_smoothing: float = 0.0,
     mean='0.485,0.456,0.406',
     std='0.229,0.224,0.225',
+    max_size: int = 256,
+    resize: int = 224,
 ):
     path_to_data_dir = Path(path_to_data_dir).resolve()
 
@@ -210,10 +222,14 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
         train_transforms=get_train_transforms(
             mean=mean_lst,
             std=std_lst,
+            max_size=max_size,
+            resize=resize,
         ),
         val_transforms=get_val_transforms(
             mean=mean_lst,
             std=std_lst,
+            max_size=max_size,
+            resize=resize,
         ),
     )
 

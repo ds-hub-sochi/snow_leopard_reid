@@ -86,7 +86,9 @@ nohup python ./irbis_classifier/cli/training/start_training.py \
     --warmup_epochs 5 \
     --use_weighted_loss False \
     --loss CrossEntropyLoss \
-    --label_smoothing 0.05 &
+    --label_smoothing 0.05 \
+    --mean "0.485,0.456,0.406" \
+    --std "0.229,0.224,0.225" &
 ```
 
 ```bash

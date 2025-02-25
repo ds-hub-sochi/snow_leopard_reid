@@ -14,7 +14,7 @@ from irbis_classifier.src.models.factory import Factory
 from irbis_classifier.src.plots import create_barplot_with_confidence_intervals
 from irbis_classifier.src.testing.utils import test_model
 from irbis_classifier.src.training.datasets import AnimalDataset
-from irbis_classifier.src.training.transforms import val_transfroms
+from irbis_classifier.src.training.transforms import get_val_transforms
 
 
 @click.command()
@@ -40,7 +40,29 @@ from irbis_classifier.src.training.transforms import val_transfroms
     type=click.Path(exists=True),
     help='The path to the json file with the russian to english mapping',
 )
-def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-arguments
+@click.option(
+    '--mean',
+    type=str,
+    default="0.485,0.456,0.406",
+    help='normalization mean',
+)
+@click.option(
+    '--std',
+    type=str,
+    default='0.229,0.224,0.225',
+    help='normalization mean',
+)
+@click.option(
+    '--max_size',
+    type=int,
+    default=256,
+)
+@click.option(
+    '--resize',
+    type=int,
+    default=224,
+)
+def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-arguments,too-many-locals
     path_to_test_csv: str | Path,
     model_name: str,
     path_to_weight: str | Path,
@@ -51,6 +73,10 @@ def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-argum
     path_to_unification_mapping_json: Path | str,
     path_to_supported_labels_json: Path | str,
     path_to_russian_to_english_mapping_json: Path | str,
+    mean='0.485,0.456,0.406',
+    std='0.229,0.224,0.225',
+    max_size: int = 256,
+    resize: int = 224,
 ) -> None:
     path_to_test_csv = Path(path_to_test_csv).resolve()
 
@@ -64,6 +90,14 @@ def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-argum
         path_to_russian_to_english_mapping_json,
     )
 
+    try:
+        mean_lst: list[float] = [float(value) for value in mean.split(',')]
+        std_lst: list[float] = [float(value) for value in std.split(',')]
+    except ValueError:
+        logger.error('check mean and std you have passed; it most be a comma separated string like "0.1,0.2,0.3"')
+
+        return
+
     device: torch.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
     model: nn.Module = Factory.build_model(
@@ -76,7 +110,12 @@ def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-argum
 
     test_dataset: AnimalDataset = AnimalDataset(
         path_to_test_csv,
-        val_transfroms,
+        get_val_transforms(
+            mean=mean_lst,
+            std=std_lst,
+            max_size=max_size,
+            resize=resize,
+        ),
     )
 
     test_dataloader: DataLoader = DataLoader(

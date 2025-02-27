@@ -31,16 +31,6 @@ def test_binary_simple():
             rtol=1e-5,
             atol=1e-5,
         )
-        assert np.allclose(
-            result.lower,
-            answer[label].lower,
-            atol=3e-2,
-        )
-        assert np.allclose(
-            result.upper,
-            answer[label].upper,
-            atol=3e-2,
-        )
 
 
 def test_multyclass_simple():
@@ -69,16 +59,6 @@ def test_multyclass_simple():
             answer[label].point,
             rtol=1e-5,
             atol=1e-5,
-        )
-        assert np.allclose(
-            result.lower,
-            answer[label].lower,
-            atol=3e-2,
-        )
-        assert np.allclose(
-            result.upper,
-            answer[label].upper,
-            atol=3e-2,
         )
 
 

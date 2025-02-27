@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from sklearn.metrics import f1_score
 from torch import nn
@@ -12,7 +13,7 @@ def test_model(
     model: nn.Module,
     bootstrap_size: int = 10000,
     alpha: float = 0.95
-) -> tuple[float, dict[int, MetricsEstimations]]:
+) -> tuple[MetricsEstimations, dict[int, MetricsEstimations]]:
     targets_lst: list[int] = []
     predicted_labels_lst: list[int] = []
 
@@ -38,11 +39,20 @@ def test_model(
 
     tester: ClassificationTester = ClassificationTester()
 
-    f1_score_macro: float = f1_score(
-        y_true = targets_lst,
-        y_pred = predicted_labels_lst,
-        average = 'macro',
+    kwargs: dict[str, str] = {
+        'average': 'macro',
+    }
+
+    f1_score_macro: MetricsEstimations = tester._get_class_estimations(
+        f1_score,
+        np.array(targets_lst),
+        np.array(predicted_labels_lst),
+        bootstrap_size,
+        alpha,
+        kwargs,
     )
+
+    kwargs['average'] = 'binary'
 
     f1_score_over_classes: dict[int, MetricsEstimations] = tester.get_estimation_over_class(
         f1_score,
@@ -50,6 +60,10 @@ def test_model(
         predicted_labels_lst,
         bootstrap_size,
         alpha,
+        kwargs,
     )
 
-    return (f1_score_macro, f1_score_over_classes,)
+    return (
+        f1_score_macro,
+        f1_score_over_classes,
+    )

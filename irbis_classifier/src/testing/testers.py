@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import inspect
 import os
 from abc import ABC, abstractmethod
@@ -32,7 +34,7 @@ class ClassificationTesterInterface(ABC):
         y_predicted: T,
         bootstrap_size: int = 10000,
         alpha: float = 0.95,
-        metric_kwargs: dict[str, str] = {},
+        metric_kwargs: dict[str, str] | None = None,
     ) -> dict[int, MetricsEstimations]:
         pass
 
@@ -44,7 +46,7 @@ class ClassificationTesterInterface(ABC):
         y_predicted: npt.NDArray[np.int_],
         bootstrap_size: int = 10000,
         alpha: float = 0.95,
-        metric_kwargs: dict[str, str] = {},
+        metric_kwargs: dict[str, str] | None = None,
     ) -> MetricsEstimations:
         pass
 
@@ -57,7 +59,7 @@ class ClassificationTester(ClassificationTesterInterface):
         y_predicted: T,
         bootstrap_size: int = 10000,
         alpha: float = 0.95,
-        metric_kwargs: dict[str, str] = {},
+        metric_kwargs: dict[str, str] | None = None,
     ) -> dict[int, MetricsEstimations]:
         parameters: list[str] = list(inspect.signature(metric).parameters.keys())
 
@@ -109,8 +111,11 @@ class ClassificationTester(ClassificationTesterInterface):
         y_predicted: npt.NDArray[np.int_],
         bootstrap_size: int = 10000,
         alpha: float = 0.95,
-        metric_kwargs: dict[str, str] = {},
+        metric_kwargs: dict[str, str] | None = None,
     ) -> MetricsEstimations:
+        if metric_kwargs is None:
+            metric_kwargs = {}
+
         bootstrap_indexes = np.random.choice(np.arange(y_true.shape[0]), size=(bootstrap_size, y_true.shape[0]))
         
         y_true_bootstrapped = y_true[bootstrap_indexes]

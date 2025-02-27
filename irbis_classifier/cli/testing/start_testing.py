@@ -132,7 +132,10 @@ def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-argum
         alpha,
     )
 
-    logger.info(f'f1 macro = {f1_score_macro}')
+    logger.info(
+        f'f1 macro: point estimations = {f1_score_macro.point:.4f}, upper = {f1_score_macro.upper:.4f} ' +
+        f'lower = {f1_score_macro.lower:.4f}' 
+    )
 
     for label_index, metric in test_metrics.items():
         logger.info(

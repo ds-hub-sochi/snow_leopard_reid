@@ -468,7 +468,7 @@ def create_image_grid(
 
 
 def create_barplot_with_confidence_intervals(  # pylint: disable=too-many-positional-arguments
-    f1_score_macro: float,
+    f1_score_macro: MetricsEstimations,
     metrics: dict[int, MetricsEstimations],
     metric_max_value: float,
     show: bool,
@@ -494,18 +494,32 @@ def create_barplot_with_confidence_intervals(  # pylint: disable=too-many-positi
             x=list(metrics.keys()),
             height=[metrics[key].point for key in metrics],
             width=0.4,
-            yerr=np.array(
-                [
-                    (
-                        metrics[key].point - metrics[key].lower,
-                        metrics[key].upper - metrics[key].point
-                    ) for key in metrics
-                ],
-            ).T,
             color='red',
             align='center',
             alpha=0.5,
             zorder=3,
+        )
+
+        plt.errorbar(
+            x=list(metrics.keys()),
+            y=[metrics[key].point for key in metrics],
+            yerr=np.array(
+                [
+                    (
+                        max(
+                            metrics[key].point - metrics[key].lower,
+                            0 - metrics[key].lower,
+                        ),
+                        min(
+                            metrics[key].upper - metrics[key].point,
+                            1 - metrics[key].point,
+                        ),
+                    ) for key in metrics
+                ],
+            ).T,
+            linestyle='',
+            elinewidth=16,
+            zorder=4,
         )
 
         ax = plt.gca()
@@ -534,7 +548,7 @@ def create_barplot_with_confidence_intervals(  # pylint: disable=too-many-positi
         )
 
         plt.title(
-            f"Metric's value with confidence intervals \n f-score macro = {f1_score_macro:.3f}",
+            f"Metric's value with confidence intervals \n f-score macro = {f1_score_macro.point:.3f}",
             fontsize=EXTREMELY_SUPER_LARGE_SIZE,
         )
 

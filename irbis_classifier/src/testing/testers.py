@@ -30,8 +30,9 @@ class ClassificationTesterInterface(ABC):
         metric: Callable[[T, T], float],
         y_true: T,
         y_predicted: T,
-        bootstrap_size: int = 10000,
-        alpha: float = 0.95,
+        bootstrap_size: int,
+        alpha: float,
+        metric_kwargs: dict[str, str],
     ) -> dict[int, MetricsEstimations]:
         pass
 
@@ -41,8 +42,9 @@ class ClassificationTesterInterface(ABC):
         metric: Callable[[T, T], float],
         y_true: npt.NDArray[np.int_],
         y_predicted: npt.NDArray[np.int_],
-        bootstrap_size: int = 10000,
-        alpha: float = 0.95,
+        bootstrap_size: int,
+        alpha: float,
+        metric_kwargs: dict[str, str],
     ) -> MetricsEstimations:
         pass
 

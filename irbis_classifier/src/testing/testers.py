@@ -30,9 +30,9 @@ class ClassificationTesterInterface(ABC):
         metric: Callable[[T, T], float],
         y_true: T,
         y_predicted: T,
-        bootstrap_size: int,
-        alpha: float,
-        metric_kwargs: dict[str, str],
+        bootstrap_size: int = 10000,
+        alpha: float = 0.95,
+        metric_kwargs: dict[str, str] = {},
     ) -> dict[int, MetricsEstimations]:
         pass
 
@@ -42,9 +42,9 @@ class ClassificationTesterInterface(ABC):
         metric: Callable[[T, T], float],
         y_true: npt.NDArray[np.int_],
         y_predicted: npt.NDArray[np.int_],
-        bootstrap_size: int,
-        alpha: float,
-        metric_kwargs: dict[str, str],
+        bootstrap_size: int = 10000,
+        alpha: float = 0.95,
+        metric_kwargs: dict[str, str] = {},
     ) -> MetricsEstimations:
         pass
 
@@ -55,9 +55,9 @@ class ClassificationTester(ClassificationTesterInterface):
         metric: Callable[[T, T], float],
         y_true: T,
         y_predicted: T,
-        bootstrap_size: int,
-        alpha: float,
-        metric_kwargs: dict[str, str],
+        bootstrap_size: int = 10000,
+        alpha: float = 0.95,
+        metric_kwargs: dict[str, str] = {},
     ) -> dict[int, MetricsEstimations]:
         parameters: list[str] = list(inspect.signature(metric).parameters.keys())
 
@@ -107,9 +107,9 @@ class ClassificationTester(ClassificationTesterInterface):
         metric: Callable[[T, T, Any], float],
         y_true: npt.NDArray[np.int_],
         y_predicted: npt.NDArray[np.int_],
-        bootstrap_size: int,
-        alpha: float,
-        metric_kwargs: dict[str, str],
+        bootstrap_size: int = 10000,
+        alpha: float = 0.95,
+        metric_kwargs: dict[str, str] = {},
     ) -> MetricsEstimations:
         bootstrap_indexes = np.random.choice(np.arange(y_true.shape[0]), size=(bootstrap_size, y_true.shape[0]))
         

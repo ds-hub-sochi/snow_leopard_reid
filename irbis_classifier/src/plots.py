@@ -596,14 +596,20 @@ def create_confusion_matrix(
         }
     )
 
-    axes.set_xlabel('Predicted')
+    axes.set_xlabel(
+        'Predicted',
+        fontsize=LARGE_SIZE,
+    )
     axes.set_xticklabels(
         labels,
         rotation=90,
         fontsize=BIGGER_SIZE,
     )
 
-    axes.set_ylabel('Actual')
+    axes.set_ylabel(
+        'Actual',
+        fontsize=LARGE_SIZE,
+    )
     axes.set_yticklabels(
         labels,
         fontsize=BIGGER_SIZE,

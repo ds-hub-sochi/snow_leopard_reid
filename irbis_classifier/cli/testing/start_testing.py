@@ -1,20 +1,27 @@
 from __future__ import annotations
 
+import json
 import os
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import click
 import torch
 from loguru import logger
-from torch import nn
 from torch.utils.data import DataLoader
 
 from irbis_classifier.src.label_encoder import create_label_encoder, LabelEncoder
-from irbis_classifier.src.models.factory import Factory
 from irbis_classifier.src.plots import create_barplot_with_confidence_intervals, create_confusion_matrix
 from irbis_classifier.src.testing.utils import test_model
+from irbis_classifier.src.testing.testers import MetricsEstimations
 from irbis_classifier.src.training.datasets import AnimalDataset
 from irbis_classifier.src.training.transforms import get_val_transforms
+
+
+@dataclass
+class MetricsJson:
+    averaged_f1_macro: MetricsEstimations
+    f1_for_classes: dict[str, MetricsEstimations]
 
 
 @click.command()
@@ -24,14 +31,9 @@ from irbis_classifier.src.training.transforms import get_val_transforms
     help='path to csv-file with test data',
 )
 @click.option(
-    '--model_name',
-    type=str,
-    help ="model name",
-)
-@click.option(
-    '--path_to_weight',
+    '--path_to_traced_model',
     type=click.Path(exists=True),
-    help ="path to model's weights",
+    help ="path to traced model dump",
 )
 @click.option(
     '--batch_size',
@@ -93,8 +95,7 @@ from irbis_classifier.src.training.transforms import get_val_transforms
 )
 def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-arguments,too-many-locals
     path_to_test_csv: str | Path,
-    model_name: str,
-    path_to_weight: str | Path,
+    path_to_traced_model: str,
     batch_size: int,
     bootstrap_size: int,
     alpha: float,
@@ -108,6 +109,13 @@ def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-argum
     resize: int = 224,
 ) -> None:
     path_to_test_csv = Path(path_to_test_csv).resolve()
+
+    path_to_save_dir = Path(path_to_save_dir).resolve()
+    path_to_save_dir = path_to_save_dir / path_to_traced_model[:-3]
+    path_to_save_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
     path_to_unification_mapping_json = Path(path_to_unification_mapping_json).resolve()
     path_to_supported_labels_json = Path(path_to_supported_labels_json).resolve()
@@ -129,12 +137,8 @@ def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-argum
 
     device: torch.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-    model: nn.Module = Factory.build_model(
-        model_name,
-        label_encoder.get_number_of_classes(),
-    )
-    model = model.to(device)
-    model.load_state_dict(torch.load(path_to_weight))
+    model: torch.jit.ScriptModule = torch.jit.load(path_to_traced_model)
+    model.to(device)
     model.eval()
 
     test_dataset: AnimalDataset = AnimalDataset(
@@ -161,25 +165,14 @@ def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-argum
         alpha,
     )
 
-    logger.info(
-        f'f1 macro: point estimations = {f1_score_macro.point:.4f}, upper = {f1_score_macro.upper:.4f} ' +
-        f'lower = {f1_score_macro.lower:.4f}' 
-    )
-
-    for label_index, metric in test_metrics.items():
-        logger.info(
-            f'{label_encoder.get_label_by_index(label_index)}: ' +  
-            f'point estimations = {metric.point:.4f}, upper = {metric.upper:.4f}, lower = {metric.lower:.4f}',
-        )
-
     create_barplot_with_confidence_intervals(
         f1_score_macro,
         test_metrics,
         1.0,
-        False,
-        True,
-        path_to_save_dir,
-        [label_encoder.get_label_by_index(i) for i in test_metrics],
+        show=False,
+        save=True,
+        save_dir=path_to_save_dir,
+        labels=[label_encoder.get_label_by_index(i) for i in test_metrics],
     )
 
     create_confusion_matrix(
@@ -189,6 +182,36 @@ def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-argum
         save=True,
         save_dir=path_to_save_dir,
     )
+
+    for index in list(test_metrics.keys()):
+        test_metrics[label_encoder.get_english_label_by_index(index)] = test_metrics[index]
+        del test_metrics[index]
+
+    logger.info(
+        f'f1 macro: point estimations = {f1_score_macro.point:.4f}, upper = {f1_score_macro.upper:.4f}, ' +
+        f'lower = {f1_score_macro.lower:.4f}' 
+    )
+
+    for label, metric in test_metrics.items():
+        logger.info(
+            f'{label}: point estimations = {metric.point:.4f}, upper = {metric.upper:.4f}, ' + 
+            f'lower = {metric.lower:.4f}',
+        )
+
+    metrics_json: MetricsJson = MetricsJson(
+        f1_score_macro,
+        test_metrics,
+    )
+
+    with open(
+        path_to_save_dir / 'metrics.json',
+        'w',
+        encoding='utf-8',
+    ) as metrics_file:
+        json.dump(
+            asdict(metrics_json),
+            metrics_file,
+        )
 
 
 if __name__ == "__main__":

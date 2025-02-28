@@ -19,7 +19,7 @@ def test_model(  # pylint: disable=too-many-locals
     model: nn.Module,
     bootstrap_size: int = 10000,
     alpha: float = 0.95,
-) -> tuple[MetricsEstimations, dict[int, MetricsEstimations]]:
+) -> tuple[MetricsEstimations, dict[int, MetricsEstimations], list[list[T]]]:
     targets_lst: list[int] = []
     predicted_labels_lst: list[int] = []
 

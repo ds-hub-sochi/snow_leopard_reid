@@ -12,8 +12,16 @@ from irbis_classifier.src.utils import save_model_as_traced
 
 
 @click.command()
-@click.option('--model_name', type=str, help ="model name")
-@click.option('--path_to_weight', type=click.Path(exists=True), help ="path to model's weights")
+@click.option(
+    '--model_name',
+    type=str,
+    help='model name',
+)
+@click.option(
+    '--path_to_weight',
+    type=click.Path(exists=True),
+    help ="path to model's weights",
+)
 @click.option(
     '--path_to_unification_mapping_json',
     type=click.Path(exists=True),
@@ -34,6 +42,11 @@ from irbis_classifier.src.utils import save_model_as_traced
     type=click.Path(),
     help='The path to the json file with the russian to english mapping',
 )
+@click.option(
+    '--input_size',
+    type=int,
+    help="input tensor'side size",
+)
 def run_saving(  # pylint: disable=too-many-positional-arguments
     model_name: str,
     path_to_weight: str | Path,
@@ -41,6 +54,7 @@ def run_saving(  # pylint: disable=too-many-positional-arguments
     path_to_supported_labels_json: Path | str,
     path_to_russian_to_english_mapping_json: Path | str,
     path_to_traced_model_checkpoint: Path | str,
+    input_size: int,
 ) -> None:
     path_to_unification_mapping_json = Path(path_to_unification_mapping_json).resolve()
     path_to_supported_labels_json = Path(path_to_supported_labels_json).resolve()
@@ -73,7 +87,7 @@ def run_saving(  # pylint: disable=too-many-positional-arguments
     )
     model.eval()
 
-    sample_input: torch.Tensor = torch.ones((1, 3, 224, 224))
+    sample_input: torch.Tensor = torch.ones((1, 3, input_size, input_size))
 
     output_before: torch.Tensor = model(sample_input)
 

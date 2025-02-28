@@ -4,6 +4,7 @@ import os
 from collections import defaultdict
 from glob import glob
 from pathlib import Path
+from typing import TypeVar
 import warnings
 
 import numpy as np
@@ -468,7 +469,7 @@ def create_image_grid(
 
 
 def create_barplot_with_confidence_intervals(  # pylint: disable=too-many-positional-arguments
-    f1_score_macro: float,
+    f1_score_macro: MetricsEstimations,
     metrics: dict[int, MetricsEstimations],
     metric_max_value: float,
     show: bool,
@@ -494,18 +495,32 @@ def create_barplot_with_confidence_intervals(  # pylint: disable=too-many-positi
             x=list(metrics.keys()),
             height=[metrics[key].point for key in metrics],
             width=0.4,
-            yerr=np.array(
-                [
-                    (
-                        metrics[key].point - metrics[key].lower,
-                        metrics[key].upper - metrics[key].point
-                    ) for key in metrics
-                ],
-            ).T,
             color='red',
             align='center',
             alpha=0.5,
             zorder=3,
+        )
+
+        plt.errorbar(
+            x=list(metrics.keys()),
+            y=[metrics[key].point for key in metrics],
+            yerr=np.array(
+                [
+                    (
+                        max(
+                            metrics[key].point - metrics[key].lower,
+                            0 - metrics[key].lower,
+                        ),
+                        min(
+                            metrics[key].upper - metrics[key].point,
+                            1 - metrics[key].point,
+                        ),
+                    ) for key in metrics
+                ],
+            ).T,
+            linestyle='',
+            elinewidth=16,
+            zorder=4,
         )
 
         ax = plt.gca()
@@ -534,7 +549,7 @@ def create_barplot_with_confidence_intervals(  # pylint: disable=too-many-positi
         )
 
         plt.title(
-            f"Metric's value with confidence intervals \n f-score macro = {f1_score_macro:.3f}",
+            f"Metric's value with confidence intervals \n f-score macro = {f1_score_macro.point:.3f}",
             fontsize=EXTREMELY_SUPER_LARGE_SIZE,
         )
 
@@ -551,3 +566,70 @@ def create_barplot_with_confidence_intervals(  # pylint: disable=too-many-positi
         plt.savefig(save_dir / 'metric_over_classes.png')  # type: ignore
 
     logger.success("barplot with metric's value over classes was created")
+
+
+T = TypeVar('T', int, float)
+
+def create_confusion_matrix(
+    matrix: list[list[T]],
+    labels: list[str] | tuple[str],
+    show: bool,
+    save: bool,
+    save_dir: str | Path | None,
+) -> None:
+    logger.info("confusion matrix creation has started")
+
+    confusion_matrix_as_df: pd.DataFrame = pd.DataFrame(
+        matrix,
+        index=labels,
+        columns=labels,
+    )
+
+    fig_width: int = round(len(labels))
+    plt.figure(figsize=(fig_width, fig_width))
+
+    axes: plt.axes = sns.heatmap(
+        confusion_matrix_as_df,
+        annot=True,
+        annot_kws={
+            "size": MEDIUM_SIZE,
+        }
+    )
+
+    axes.set_xlabel(
+        'Predicted',
+        fontsize=LARGE_SIZE,
+    )
+    axes.set_xticklabels(
+        labels,
+        rotation=90,
+        fontsize=BIGGER_SIZE,
+    )
+
+    axes.set_ylabel(
+        'Actual',
+        fontsize=LARGE_SIZE,
+    )
+    axes.set_yticklabels(
+        labels,
+        fontsize=BIGGER_SIZE,
+    )
+
+    plt.title(
+        'Confusion matrix',
+        fontsize=LARGE_SIZE,
+    )
+
+    if show:
+        plt.show()
+
+    if save and save_dir is not None:
+        save_dir = Path(save_dir).resolve()
+        save_dir.mkdir(
+            exist_ok=True,
+            parents=True,
+        )
+
+        plt.savefig(save_dir / 'confusion_matrix.png')  # type: ignore
+
+    logger.success("confusion matrix was created")

@@ -170,3 +170,5 @@ nohup.out
 *.ipynb
 
 models/*
+
+irbis_classifier/cli/*/__init__.py

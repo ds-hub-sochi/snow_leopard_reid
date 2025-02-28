@@ -1,13 +1,17 @@
+from __future__ import annotations
+
 import inspect
+import os
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any, TypeVar
 
-from loguru import logger
 import numpy as np
 import numpy.typing as npt
 import scipy.stats as sts
+from joblib import delayed, Parallel
+from loguru import logger
 from tqdm import tqdm
 
 
@@ -30,6 +34,7 @@ class ClassificationTesterInterface(ABC):
         y_predicted: T,
         bootstrap_size: int = 10000,
         alpha: float = 0.95,
+        metric_kwargs: dict[str, str] | None = None,
     ) -> dict[int, MetricsEstimations]:
         pass
 
@@ -41,6 +46,7 @@ class ClassificationTesterInterface(ABC):
         y_predicted: npt.NDArray[np.int_],
         bootstrap_size: int = 10000,
         alpha: float = 0.95,
+        metric_kwargs: dict[str, str] | None = None,
     ) -> MetricsEstimations:
         pass
 
@@ -53,6 +59,7 @@ class ClassificationTester(ClassificationTesterInterface):
         y_predicted: T,
         bootstrap_size: int = 10000,
         alpha: float = 0.95,
+        metric_kwargs: dict[str, str] | None = None,
     ) -> dict[int, MetricsEstimations]:
         parameters: list[str] = list(inspect.signature(metric).parameters.keys())
 
@@ -92,6 +99,7 @@ class ClassificationTester(ClassificationTesterInterface):
                 current_label_y_predicted,
                 bootstrap_size,
                 alpha,
+                metric_kwargs,
             )
 
         return estimations
@@ -103,18 +111,23 @@ class ClassificationTester(ClassificationTesterInterface):
         y_predicted: npt.NDArray[np.int_],
         bootstrap_size: int = 10000,
         alpha: float = 0.95,
+        metric_kwargs: dict[str, str] | None = None,
     ) -> MetricsEstimations:
-        bootstrap_indexes = np.random.choice(np.arange(y_true.shape[0]), size=(y_true.shape[0], bootstrap_size))
+        if metric_kwargs is None:
+            metric_kwargs = {}
+
+        bootstrap_indexes = np.random.choice(np.arange(y_true.shape[0]), size=(bootstrap_size, y_true.shape[0]))
         
         y_true_bootstrapped = y_true[bootstrap_indexes]
         y_predicted_bootstrapped = y_predicted[bootstrap_indexes]
 
         metric_estimations = np.array(
-            [
-                metric(temp_true, temp_predicted) for temp_true, temp_predicted in \
-                zip(y_true_bootstrapped, y_predicted_bootstrapped)
-            ]
+            list(
+                Parallel(n_jobs=os.cpu_count())(delayed(metric)(temp_true, temp_predicted, **metric_kwargs) for \
+                temp_true, temp_predicted in zip(y_true_bootstrapped, y_predicted_bootstrapped))
+            )
         )
+
         std_estimation: np.float32 = np.std(
             metric_estimations,
             ddof=1,
@@ -123,6 +136,7 @@ class ClassificationTester(ClassificationTesterInterface):
         point_estimation: float = metric(
             y_true=y_true,
             y_pred=y_predicted,
+            **metric_kwargs,
         )
 
         normal_quantile: np.float32 = sts.norm.ppf((1 + alpha) / 2)

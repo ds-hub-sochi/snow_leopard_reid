@@ -11,56 +11,85 @@ from torch.utils.data import DataLoader
 
 from irbis_classifier.src.label_encoder import create_label_encoder, LabelEncoder
 from irbis_classifier.src.models.factory import Factory
-from irbis_classifier.src.plots import create_barplot_with_confidence_intervals
+from irbis_classifier.src.plots import create_barplot_with_confidence_intervals, create_confusion_matrix
 from irbis_classifier.src.testing.utils import test_model
 from irbis_classifier.src.training.datasets import AnimalDataset
 from irbis_classifier.src.training.transforms import get_val_transforms
 
 
 @click.command()
-@click.option('--path_to_test_csv', type=click.Path(exists=True), help='path to csv-file with test data')
-@click.option('--model_name', type=str, help ="model name")
-@click.option('--path_to_weight', type=click.Path(exists=True), help ="path to model's weights")
-@click.option('--batch_size', type=int, help ="batch size to use; better be training batch size / number of gpus")
-@click.option('--bootstrap_size', type=int, help='size of a bootstrapped sample')
-@click.option('--alpha', type=float, help='required confidence level')
-@click.option('--path_to_save_dir', type=click.Path(), help='The path to the data directory')
+@click.option(
+    '--path_to_test_csv',
+    type=click.Path(exists=True),
+    help='path to csv-file with test data',
+)
+@click.option(
+    '--model_name',
+    type=str,
+    help ="model name",
+)
+@click.option(
+    '--path_to_weight',
+    type=click.Path(exists=True),
+    help ="path to model's weights",
+)
+@click.option(
+    '--batch_size',
+    type=int,
+    help ="batch size to use; better be training batch size / number of gpus")
+@click.option(
+    '--bootstrap_size',
+    type=int,
+    help='size of a bootstrapped sample',
+)
+@click.option(
+    '--alpha',
+    type=float, 
+    help='required confidence level',
+)
+@click.option(
+    '--path_to_save_dir',
+    type=click.Path(), 
+    help='the path to the data directory',
+)
 @click.option(
     '--path_to_unification_mapping_json',
     type=click.Path(exists=True),
-    help='The path to the json file with unification mapping',
+    help='the path to the json file with unification mapping',
 )
 @click.option(
     '--path_to_supported_labels_json',
     type=click.Path(exists=True),
-    help='The path to the json file with the list of supported labels',
+    help='the path to the json file with the list of supported labels',
 )
 @click.option(
     '--path_to_russian_to_english_mapping_json',
     type=click.Path(exists=True),
-    help='The path to the json file with the russian to english mapping',
+    help='the path to the json file with the russian to english mapping',
 )
 @click.option(
     '--mean',
     type=str,
-    default="0.485,0.456,0.406",
-    help='normalization mean',
+    default='0.485,0.456,0.406',
+    help='normalization mean; better see model description for the proper values',
 )
 @click.option(
     '--std',
     type=str,
     default='0.229,0.224,0.225',
-    help='normalization mean',
+    help='normalization standart deviation; better see model description for the proper values',
 )
 @click.option(
     '--max_size',
     type=int,
     default=256,
+    help='max image size; bigger side will be resized to this size',
 )
 @click.option(
     '--resize',
     type=int,
     default=224,
+    help='after the padding applied image will be resized to this size',
 )
 def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-arguments,too-many-locals
     path_to_test_csv: str | Path,
@@ -125,7 +154,7 @@ def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-argum
         num_workers=os.cpu_count(),
     )
 
-    f1_score_macro, test_metrics = test_model(
+    f1_score_macro, test_metrics, confusion_matrix = test_model(
         test_dataloader,
         model,
         bootstrap_size,
@@ -151,6 +180,14 @@ def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-argum
         True,
         path_to_save_dir,
         [label_encoder.get_label_by_index(i) for i in test_metrics],
+    )
+
+    create_confusion_matrix(
+        confusion_matrix,
+        [label_encoder.get_label_by_index(i) for i in range(label_encoder.get_number_of_classes())],
+        show=False,
+        save=True,
+        save_dir=path_to_save_dir,
     )
 
 

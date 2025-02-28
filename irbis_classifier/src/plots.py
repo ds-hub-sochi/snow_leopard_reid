@@ -4,6 +4,7 @@ import os
 from collections import defaultdict
 from glob import glob
 from pathlib import Path
+from typing import TypeVar
 import warnings
 
 import numpy as np
@@ -565,3 +566,64 @@ def create_barplot_with_confidence_intervals(  # pylint: disable=too-many-positi
         plt.savefig(save_dir / 'metric_over_classes.png')  # type: ignore
 
     logger.success("barplot with metric's value over classes was created")
+
+
+T = TypeVar('T', int, float)
+
+def create_confusion_matrix(
+    matrix: list[list[T]],
+    labels: list[str] | tuple[str],
+    show: bool,
+    save: bool,
+    save_dir: str | Path | None,
+) -> None:
+    logger.info("confusion matrix creation has started")
+
+    confusion_matrix_as_df: pd.DataFrame = pd.DataFrame(
+        matrix,
+        index=labels,
+        columns=labels,
+    )
+
+    fig_width: int = round(len(labels))
+    plt.figure(figsize=(fig_width, fig_width))
+
+    axes: plt.axes = sns.heatmap(
+        confusion_matrix_as_df,
+        annot=True,
+        annot_kws={
+            "size": MEDIUM_SIZE,
+        }
+    )
+
+    axes.set_xlabel('Predicted')
+    axes.set_xticklabels(
+        labels,
+        rotation=90,
+        fontsize=BIGGER_SIZE,
+    )
+
+    axes.set_ylabel('Actual')
+    axes.set_yticklabels(
+        labels,
+        fontsize=BIGGER_SIZE,
+    )
+
+    plt.title(
+        'Confusion matrix',
+        fontsize=LARGE_SIZE,
+    )
+
+    if show:
+        plt.show()
+
+    if save and save_dir is not None:
+        save_dir = Path(save_dir).resolve()
+        save_dir.mkdir(
+            exist_ok=True,
+            parents=True,
+        )
+
+        plt.savefig(save_dir / 'confusion_matrix.png')  # type: ignore
+
+    logger.success("confusion matrix was created")

@@ -1,3 +1,5 @@
+from typing import TypeVar
+
 import numpy as np
 import torch
 from sklearn.metrics import f1_score
@@ -5,14 +7,18 @@ from torch import nn
 from tqdm import tqdm
 
 from irbis_classifier.src.testing.testers import ClassificationTester, MetricsEstimations
+from irbis_classifier.src.utils import create_confusion_matrix
+
+
+T = TypeVar('T', int, float)
 
 
 @torch.inference_mode()
-def test_model(
+def test_model(  # pylint: disable=too-many-locals
     test_dataloader: torch.utils.data.DataLoader,
     model: nn.Module,
     bootstrap_size: int = 10000,
-    alpha: float = 0.95
+    alpha: float = 0.95,
 ) -> tuple[MetricsEstimations, dict[int, MetricsEstimations]]:
     targets_lst: list[int] = []
     predicted_labels_lst: list[int] = []
@@ -43,6 +49,12 @@ def test_model(
         'average': 'macro',
     }
 
+    confusion_matrix: list[list[T]] = create_confusion_matrix(
+        y_true=targets_lst,
+        y_predicted=predicted_labels_lst,
+        normalize=True,
+    )
+
     f1_score_macro: MetricsEstimations = tester._get_class_estimations(
         f1_score,
         np.array(targets_lst),
@@ -66,4 +78,5 @@ def test_model(
     return (
         f1_score_macro,
         f1_score_over_classes,
+        confusion_matrix,
     )

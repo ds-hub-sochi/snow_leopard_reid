@@ -90,17 +90,19 @@ nohup python ./irbis_classifier/cli/training/start_training.py \
     --mean "0.4815,0.4578,0.4082" \
     --std "0.2686,0.2613,0.2758" \
     --max_size 512 \
-    --resize 448 &
+    --resize 448 \
+    --use_ema_model True \
+    --gradient_accumulation_steps 2 &
 ```
 
 ```bash
 python ./irbis_classifier/cli/saving/save_as_traced_model.py \
     --model_name eva02_large_patch14_448.mim_m38m_ft_in22k_in1k \
-    --path_to_weight ./models/eva02_large_patch14_448.mim_m38m_ft_in22k_in1k_CrossEntropyLoss_smoothing_scheduler_warmup/2025-02-26/best_model.pth \
+    --path_to_weight ./models/eva02_large_patch14_448.mim_m38m_ft_in22k_in1k_CrossEntropyLoss_smoothing_scheduler_warmup/2025-03-03/ema_model.pth \
     --path_to_unification_mapping_json ./data/configs/unification_mapping.json \
     --path_to_supported_labels_json ./data/configs/supported_classes.json \
     --path_to_russian_to_english_mapping_json ./data/configs/russian_to_english_mapping.json \
-    --path_to_traced_model_checkpoint ./models/jit/eva02_large_patch14_448.mim_m38m_ft_in22k_in1k_CrossEntropyLoss_smoothing_scheduler_warmup.pt \
+    --path_to_traced_model_checkpoint ./models/jit/test_best_model.pt \
     --input_size 448
 ```
 

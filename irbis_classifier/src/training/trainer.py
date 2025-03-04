@@ -104,7 +104,7 @@ class TrainerInterface(ABC):
         self,
         model: nn.Module,
         metric_value: float,
-        ema_model: None | torch.optim.swa_utils.AveragedModel,
+        model_postfix: str,
     ) -> None:
         pass
 
@@ -362,7 +362,6 @@ class Trainer(TrainerInterface):
         model,
         metric_value: float,
         model_postfix: str,
-        
     ):
         if self._bigger_is_better == (metric_value > getattr(self, f'_{model_postfix}_checkpoint_metric')):
             setattr(self, f'_{model_postfix}_checkpoint_metric', metric_value)

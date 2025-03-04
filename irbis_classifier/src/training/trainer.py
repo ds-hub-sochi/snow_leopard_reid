@@ -39,9 +39,9 @@ class TrainerInterface(ABC):
         self._bigger_is_better: bool = bigger_is_better
 
         if bigger_is_better:
-            self._checkpoint_metric: float = 0.0
+            self._model_checkpoint_metric: float = 0.0
         else:
-            self._checkpoint_metric = float('inf')
+            self._model_checkpoint_metric = float('inf')
 
         self._path_to_checkpoints_dir: Path = Path(path_to_checkpoints_dir).resolve()
 
@@ -60,6 +60,7 @@ class TrainerInterface(ABC):
         device: torch.device,
         experiment: comet_ml.CometExperiment,
         label_encoder: LabelEncoder,
+        use_ema_model: bool = False,
     ) -> None:
         pass
 
@@ -72,6 +73,7 @@ class TrainerInterface(ABC):
         scaler: torch.optim.GradScaler,
         train_dataloader: torch.utils.data.DataLoader,
         device: torch.device,
+        ema_model: None | torch.optim.swa_utils.AveragedModel,
     ) -> Logs:
         pass
 
@@ -102,6 +104,7 @@ class TrainerInterface(ABC):
         self,
         model: nn.Module,
         metric_value: float,
+        ema_model: None | torch.optim.swa_utils.AveragedModel,
     ) -> None:
         pass
 
@@ -131,10 +134,22 @@ class Trainer(TrainerInterface):
         device: torch.device,
         experiment: comet_ml.CometExperiment,
         label_encoder: LabelEncoder,
+        use_ema_model: bool = False,
     ) -> None:
-        logger.info(f'training during {n_epochs} epochs has started')
+        if use_ema_model:
+            if self._bigger_is_better:
+                self._ema_model_checkpoint_metric: float = 0.0
+            else:
+                self._ema_model_checkpoint_metric = float('inf')
 
-        label: str = ''
+            ema_model: torch.optim.swa_utils.AveragedModel | None = torch.optim.swa_utils.AveragedModel(
+                model,
+                multi_avg_fn=torch.optim.swa_utils.get_ema_multi_avg_fn(0.999),
+            )
+        else:
+            ema_model = None
+
+        logger.info(f'training during {n_epochs} epochs has started')
 
         for epoch in tqdm(range(n_epochs)):
             train_logs: Logs = self._training_step(
@@ -144,17 +159,17 @@ class Trainer(TrainerInterface):
                 scaler,
                 train_dataloader,
                 device,
+                ema_model,
             )
 
             if warmup_scheduler is not None and warmup_scheduler.warmup_epochs > epoch:
                 warmup_scheduler.step()
             elif scheduler is not None:
-                    scheduler.step()
+                scheduler.step()
 
-            label = 'train'
             self._logging_step(
                 train_logs,
-                label,
+                'train',
                 experiment,
                 epoch,
                 label_encoder,
@@ -167,10 +182,9 @@ class Trainer(TrainerInterface):
                 device,
             )
 
-            label = 'val'
             self._logging_step(
                 val_logs,
-                label,
+                'val',
                 experiment,
                 epoch,
                 label_encoder,
@@ -179,6 +193,35 @@ class Trainer(TrainerInterface):
             self._saving_step(
                 model,
                 val_logs.f1_score_macro,
+                'model',
+            )
+
+            if ema_model is not None:
+                ema_val_logs: EvalLogs = self._evaluation_step(
+                    ema_model,
+                    criterion,
+                    val_dataloader,
+                    device,
+                )
+
+                self._logging_step(
+                    ema_val_logs,
+                    'val_ema',
+                    experiment,
+                    epoch,
+                    label_encoder,
+                )
+
+                self._saving_step(
+                    ema_model.module,
+                    ema_val_logs.f1_score_macro,
+                    'ema_model',
+                )
+
+        if ema_model is not None:
+            torch.optim.swa_utils.update_bn(
+                train_dataloader,
+                ema_model,
             )
 
         logger.success('training has ended')
@@ -191,6 +234,7 @@ class Trainer(TrainerInterface):
         scaler: torch.optim.GradScaler,
         train_dataloader: torch.utils.data.DataLoader,
         device: torch.device,
+        ema_model: None | torch.optim.swa_utils.AveragedModel,
     ) -> dict[str, float]:
         model.train()
 
@@ -217,6 +261,9 @@ class Trainer(TrainerInterface):
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
+
+            if ema_model is not None:
+                ema_model.update_parameters(model)
 
         return Logs(
             loss=float(np.mean(running_loss)),
@@ -312,11 +359,13 @@ class Trainer(TrainerInterface):
 
     def _saving_step(
         self,
-        model: nn.Module,
+        model,
         metric_value: float,
-    ) -> None:
-        if self._bigger_is_better == (metric_value > self._checkpoint_metric):
-            self._checkpoint_metric = metric_value
+        model_postfix: str,
+        
+    ):
+        if self._bigger_is_better == (metric_value > getattr(self, f'_{model_postfix}_checkpoint_metric')):
+            setattr(self, f'_{model_postfix}_checkpoint_metric', metric_value)
 
             if isinstance(
                 model,
@@ -324,12 +373,12 @@ class Trainer(TrainerInterface):
             ):
                 torch.save(
                     model.module.state_dict(),
-                    self._path_to_checkpoints_dir / 'best_model.pth',
+                    self._path_to_checkpoints_dir / f'{model_postfix}_best_model.pth',
                 )
             else:
                 torch.save(
                     model.state_dict(),
-                    self._path_to_checkpoints_dir / 'best_model.pth',
+                    self._path_to_checkpoints_dir / f'{model_postfix}_best_model.pth',
                 )
 
         if isinstance(
@@ -338,10 +387,10 @@ class Trainer(TrainerInterface):
         ):
             torch.save(
                 model.module.state_dict(),
-                self._path_to_checkpoints_dir / 'last_model.pth',
+                self._path_to_checkpoints_dir / f'{model_postfix}_last_model.pth',
             )
         else:
             torch.save(
                 model.state_dict(),
-                self._path_to_checkpoints_dir / 'last_model.pth',
+                self._path_to_checkpoints_dir / f'{model_postfix}_last_model.pth',
             )

@@ -373,12 +373,12 @@ class Trainer(TrainerInterface):
             ):
                 torch.save(
                     model.module.state_dict(),
-                    self._path_to_checkpoints_dir / f'{model_postfix}_best_model.pth',
+                    self._path_to_checkpoints_dir / f'{model_postfix}_best.pth',
                 )
             else:
                 torch.save(
                     model.state_dict(),
-                    self._path_to_checkpoints_dir / f'{model_postfix}_best_model.pth',
+                    self._path_to_checkpoints_dir / f'{model_postfix}_best.pth',
                 )
 
         if isinstance(
@@ -387,10 +387,10 @@ class Trainer(TrainerInterface):
         ):
             torch.save(
                 model.module.state_dict(),
-                self._path_to_checkpoints_dir / f'{model_postfix}_last_model.pth',
+                self._path_to_checkpoints_dir / f'{model_postfix}_last.pth',
             )
         else:
             torch.save(
                 model.state_dict(),
-                self._path_to_checkpoints_dir / f'{model_postfix}_last_model.pth',
+                self._path_to_checkpoints_dir / f'{model_postfix}_last.pth',
             )

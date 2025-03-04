@@ -61,6 +61,7 @@ class TrainerInterface(ABC):
         experiment: comet_ml.CometExperiment,
         label_encoder: LabelEncoder,
         use_ema_model: bool = False,
+        gradient_accumulation_steps: int = 1,
     ) -> None:
         pass
 
@@ -135,7 +136,8 @@ class Trainer(TrainerInterface):
         experiment: comet_ml.CometExperiment,
         label_encoder: LabelEncoder,
         use_ema_model: bool = False,
-    ) -> None:
+        gradient_accumulation_steps: int = 1,
+    ) -> None: 
         if use_ema_model:
             if self._bigger_is_better:
                 self._ema_model_checkpoint_metric: float = 0.0
@@ -160,6 +162,7 @@ class Trainer(TrainerInterface):
                 train_dataloader,
                 device,
                 ema_model,
+                gradient_accumulation_steps,
             )
 
             if warmup_scheduler is not None and warmup_scheduler.warmup_epochs > epoch:
@@ -235,10 +238,13 @@ class Trainer(TrainerInterface):
         train_dataloader: torch.utils.data.DataLoader,
         device: torch.device,
         ema_model: None | torch.optim.swa_utils.AveragedModel,
+        gradient_accumulation_steps: int,
     ) -> dict[str, float]:
         model.train()
 
         running_loss: list[float] = []
+
+        step: int = 0
 
         for input_batch, targets in tqdm(train_dataloader):
             input_batch = input_batch.to(device)
@@ -259,8 +265,23 @@ class Trainer(TrainerInterface):
             running_loss.append(loss.item())
 
             scaler.scale(loss).backward()
+
+            step += 1
+
+            if step == gradient_accumulation_steps:
+                step = 0
+
+                scaler.step(optimizer)
+                scaler.update()
+                optimizer.zero_grad()
+
+                if ema_model is not None:
+                    ema_model.update_parameters(model)
+
+        if step != 0:
             scaler.step(optimizer)
             scaler.update()
+            optimizer.zero_grad()
 
             if ema_model is not None:
                 ema_model.update_parameters(model)

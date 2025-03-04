@@ -154,7 +154,13 @@ torch.backends.cudnn.deterministic=True
     '--use_ema_model',
     type=bool,
     default=False,
-    help='Should EMA model be used or not; see https://pytorch.org/docs/stable/optim.html'
+    help='should EMA model be used or not; see https://pytorch.org/docs/stable/optim.html',
+)
+@click.option(
+    '--gradient_accumulation_steps',
+    type=int,
+    default=1,
+    help='during how many steps (one forward path) graditns will be accumulated',
 )
 def start_training(  # pylint: disable=too-many-positional-arguments,too-many-locals,too-many-arguments,too-many-statements
     path_to_data_dir: str | Path,
@@ -179,6 +185,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     max_size: int = 256,
     resize: int = 224,
     use_ema_model: bool = False,
+    gradient_accumulation_steps: int = 1,
 ):
     path_to_data_dir = Path(path_to_data_dir).resolve()
 
@@ -350,6 +357,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
         experiment,
         label_encoder,
         use_ema_model,
+        gradient_accumulation_steps,
     )
 
     experiment.log_model(

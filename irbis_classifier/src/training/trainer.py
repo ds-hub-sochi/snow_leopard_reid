@@ -75,6 +75,7 @@ class TrainerInterface(ABC):
         train_dataloader: torch.utils.data.DataLoader,
         device: torch.device,
         ema_model: None | torch.optim.swa_utils.AveragedModel,
+        gradient_accumulation_steps: int,
     ) -> Logs:
         pass
 
@@ -121,7 +122,7 @@ class Trainer(TrainerInterface):
             bigger_is_better,
         )
 
-    def train(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    def train(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
         self,
         model: torch.nn.Module,
         optimizer: torch.optim.Optimizer,

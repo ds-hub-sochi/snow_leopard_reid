@@ -150,6 +150,12 @@ torch.backends.cudnn.deterministic=True
     type=int,
     default=224,
 )
+@click.option(
+    '--use_ema_model',
+    type=bool,
+    default=False,
+    help='Should EMA model be used or not; see https://pytorch.org/docs/stable/optim.html'
+)
 def start_training(  # pylint: disable=too-many-positional-arguments,too-many-locals,too-many-arguments,too-many-statements
     path_to_data_dir: str | Path,
     path_to_checkpoints_dir: str | Path,
@@ -172,6 +178,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     std='0.229,0.224,0.225',
     max_size: int = 256,
     resize: int = 224,
+    use_ema_model: bool = False,
 ):
     path_to_data_dir = Path(path_to_data_dir).resolve()
 
@@ -342,17 +349,28 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
         device,
         experiment,
         label_encoder,
+        use_ema_model,
     )
 
     experiment.log_model(
         run_name,
-        str(path_to_checkpoints_dir / 'best_model.pth'),
+        str(path_to_checkpoints_dir / 'model_best.pth'),
     )
 
     experiment.log_model(
         run_name,
-        str(path_to_checkpoints_dir / 'last_model.pth'),
+        str(path_to_checkpoints_dir / 'model_last.pth'),
     )
+
+    if use_ema_model:
+        experiment.log_model(
+            run_name,
+            str(path_to_checkpoints_dir / 'ema_model_best.pth'),
+        )
+        experiment.log_model(
+            run_name,
+            str(path_to_checkpoints_dir / 'ema_model_last.pth'),
+        )
 
     experiment.end()
 

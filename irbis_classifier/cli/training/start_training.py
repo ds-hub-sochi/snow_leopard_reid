@@ -59,11 +59,6 @@ torch.backends.cudnn.deterministic=True
     help='model you want to use',
 )
 @click.option(
-    '--run_name',
-    type=str,
-    help='name of a run in the comet reports',
-)
-@click.option(
     '--batch_size',
     type=int,
     help='batch size you want to use; please note that DataParallel is used',
@@ -107,7 +102,7 @@ torch.backends.cudnn.deterministic=True
 @click.option(
     '--warmup_epochs',
     type=int,
-    default=None,
+    default=0,
     help="how many warmup epochs must be used",
 )
 @click.option(
@@ -162,12 +157,17 @@ torch.backends.cudnn.deterministic=True
     default=1,
     help='during how many steps (one forward path) graditns will be accumulated',
 )
+@click.option(
+    '--additional_run_info',
+    type=str,
+    default='',
+    help='additional info you want to add into the run name'   
+)
 def start_training(  # pylint: disable=too-many-positional-arguments,too-many-locals,too-many-arguments,too-many-statements
     path_to_data_dir: str | Path,
     path_to_checkpoints_dir: str | Path,
     path_to_experiment_config: str | Path,
     model_name: str,
-    run_name: str,
     batch_size: int,
     n_epochs: int,
     lr: float,
@@ -176,7 +176,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     path_to_supported_labels_json: Path | str,
     path_to_russian_to_english_mapping_json: Path | str,
     use_scheduler: bool = True,
-    warmup_epochs: int | None = None,
+    warmup_epochs: int = 0,
     use_weighted_loss: bool = False,
     loss: str = 'CrossEntropyLoss',
     label_smoothing: float = 0.0,
@@ -186,7 +186,27 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     resize: int = 224,
     use_ema_model: bool = False,
     gradient_accumulation_steps: int = 1,
+    additional_run_info: str = '',
 ):
+    run_name_parts: list[str] = [model_name, loss]
+
+    if label_smoothing != 0.0:
+        run_name_parts.append('smoothing')
+    
+    if use_weighted_loss:
+        run_name_parts.append('weights')
+
+    if use_scheduler:
+        run_name_parts.append('scheduler')
+
+    if warmup_epochs is not None:
+        run_name_parts.append('warmup')
+
+    if additional_run_info != '':
+        run_name_parts.append(additional_run_info)
+
+    run_name = '_'.join(run_name_parts)
+
     path_to_data_dir = Path(path_to_data_dir).resolve()
 
     path_to_unification_mapping_json = Path(path_to_unification_mapping_json).resolve()
@@ -293,7 +313,7 @@ def start_training(  # pylint: disable=too-many-positional-arguments,too-many-lo
     else:
         scheduler = None
 
-    if warmup_epochs is not None:
+    if warmup_epochs > 0:
         warmup_scheduler: LinearWarmupLR | None = LinearWarmupLR(
             optimizer,
             warmup_epochs,

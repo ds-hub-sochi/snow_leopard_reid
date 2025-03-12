@@ -4,6 +4,7 @@ attrs
 cffi
 click==8.1.8
 comet_ml==3.49.0
+dotenv
 entrypoints
 future==1.0.0
 ImageHash==4.3.1

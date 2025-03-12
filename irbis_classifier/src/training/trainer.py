@@ -262,6 +262,7 @@ class Trainer(TrainerInterface):
                     predicted_logits,
                     targets,
                 )
+                loss /= gradient_accumulation_steps
 
             running_loss.append(loss.item())
 

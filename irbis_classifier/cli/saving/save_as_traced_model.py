@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from pathlib import Path
 
 import click
 import torch
-from dataclasses import dataclass
 from loguru import logger
 
 from irbis_classifier.src.label_encoder import create_label_encoder, LabelEncoder

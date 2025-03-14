@@ -19,6 +19,7 @@ from irbis_classifier.src.testing.test import MetricsEstimations
 
 warnings.filterwarnings('ignore')
 
+EXTRA_SMALL_SIZE: int = 8
 SMALL_SIZE: int = 12
 MEDIUM_SIZE: int = 16
 BIGGER_SIZE: int = 20
@@ -152,7 +153,9 @@ def create_classes_difference_bar_plot_over_split(
             ),
         )
 
-        for attribute, measurement in split_to_class_counts.items():
+        paddings: list[int] = (20, 20, 5)
+
+        for (attribute, measurement), padding in zip(split_to_class_counts.items(), paddings):
             offset = width * multiplier
             rects = ax.bar(
                 x + offset,
@@ -163,7 +166,9 @@ def create_classes_difference_bar_plot_over_split(
             )
             ax.bar_label(
                 rects,
-                padding=3,
+                padding=padding,
+                fontsize=SMALL_SIZE,
+                label_type='edge',
             )
             multiplier += 1
 

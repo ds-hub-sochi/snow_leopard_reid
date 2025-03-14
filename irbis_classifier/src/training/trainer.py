@@ -15,7 +15,7 @@ from torch import nn
 from tqdm import tqdm
 
 from irbis_classifier.src.label_encoder import LabelEncoder
-from irbis_classifier.src.utils import create_confusion_matrix
+from irbis_classifier.src.testing.metrics import create_confusion_matrix
 from irbis_classifier.src.training import warmup_schedulers
 
 

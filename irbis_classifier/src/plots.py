@@ -106,7 +106,7 @@ def create_pie_plots_over_split(
     logger.success('pie plots were created')
 
 
-def create_classes_difference_bar_plot_over_split(
+def create_classes_difference_bar_plot_over_split(  # pylint: disable=too-many-locals
     data_dir: Path | str,
     show: bool,
     save: bool,

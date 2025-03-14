@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from pathlib import Path
 from random import sample
-from typing import TypeVar
 
 import pandas as pd
 import torch
@@ -31,40 +29,6 @@ def sample_from_dataframe(
     indices: list[int] = sample(list(df.index), sample_size)
 
     return df.loc[indices]
-
-
-T = TypeVar('T', int, float)
-
-
-def create_confusion_matrix(
-    y_true: Sequence[int],
-    y_predicted: Sequence[int],
-    normalize: bool = False
-) -> list[list[T]]:
-    assert len(y_true) == len(y_predicted), 'number of predictions must be equal to the number of objects'
-
-    confision_matrix: list[list[T]] = []
-
-    unique_actual_labels = sorted(list(set(y_true)))  # since we have all the classes in the val/test, it's OK
-
-    for _ in unique_actual_labels:
-        confision_matrix.append([0] * len(unique_actual_labels))
-
-    for true_target, predicted_target in zip(y_true, y_predicted):
-        confision_matrix[true_target][predicted_target] += 1
-
-    if normalize:
-        for true_target, _ in enumerate(confision_matrix):  # yep, not good, but much more clear
-            row_sum: int = sum(confision_matrix[true_target])
-
-            for predicted_target in range(len(confision_matrix[true_target])):
-                confision_matrix[true_target][predicted_target] /= row_sum
-                confision_matrix[true_target][predicted_target] = round(
-                    confision_matrix[true_target][predicted_target],
-                    2,
-                )
-
-    return confision_matrix
 
 
 def save_model_as_traced(

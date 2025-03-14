@@ -47,7 +47,7 @@ class ConfidenceIntervalParams:
 class TestingConfig:
     path_to_test_csv: str | Path
     path_to_traced_model: str | Path
-    path_to_save_dir: str
+    path_to_save_dir: str | Path
     batch_size: int
     label_encoder_params: LabelEncoderParams
     normalization: Normalization
@@ -65,13 +65,10 @@ class TestingConfig:
             exist_ok=True,
         )
 
-        self.label_encoder_params = LabelEncoderParams(**self.label_encoder_params)
-        
-        self.normalization = Normalization(**self.normalization)
-        
-        self.image_resizing = ImageResizing(**self.image_resizing)
-
-        self.confidence_interval_params = ConfidenceIntervalParams(**self.confidence_interval_params)
+        self.label_encoder_params = LabelEncoderParams(**self.label_encoder_params)  # pylint: disable=not-a-mapping
+        self.normalization = Normalization(**self.normalization)  # pylint: disable=not-a-mapping
+        self.image_resizing = ImageResizing(**self.image_resizing)  # pylint: disable=not-a-mapping
+        self.confidence_interval_params = ConfidenceIntervalParams(**self.confidence_interval_params)  # pylint: disable=not-a-mapping
 
 
 @click.command()

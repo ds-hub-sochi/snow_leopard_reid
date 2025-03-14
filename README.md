@@ -69,41 +69,11 @@ python ./irbis_classifier/cli/reports/test_augmentations.py \
 ```
 
 ```bash
-nohup python ./irbis_classifier/cli/training/start_training.py \
-    --path_to_data_dir ./data/processed \
-    --path_to_checkpoints_dir ./models \
-    --path_to_experiment_config ./data/configs/experiment.json \
-    --model_name eva02_large_patch14_448.mim_m38m_ft_in22k_in1k \
-    --batch_size 64 \
-    --n_epochs 30 \
-    --lr 5e-6 \
-    --device_ids "0,1" \
-    --path_to_unification_mapping_json ./data/configs/unification_mapping.json \
-    --path_to_supported_labels_json ./data/configs/supported_classes.json \
-    --path_to_russian_to_english_mapping_json ./data/configs/russian_to_english_mapping.json \
-    --use_scheduler True \
-    --warmup_epochs 5 \
-    --use_weighted_loss False \
-    --loss CrossEntropyLoss \
-    --label_smoothing 0.05 \
-    --mean "0.4815,0.4578,0.4082" \
-    --std "0.2686,0.2613,0.2758" \
-    --max_size 512 \
-    --resize 448 \
-    --use_ema_model True \
-    --gradient_accumulation_steps 1 \
-    --additional_run_info "" &
+nohup python ./irbis_classifier/cli/training/start_training.py --path_to_config ./data/configs/training_config.json &
 ```
 
 ```bash
-python ./irbis_classifier/cli/saving/save_as_traced_model.py \
-    --model_name eva02_large_patch14_448.mim_m38m_ft_in22k_in1k \
-    --path_to_weight ./models/eva02_large_patch14_448.mim_m38m_ft_in22k_in1k_CrossEntropyLoss_smoothing_scheduler_warmup_gas_1/2025-03-05/model_best.pth \
-    --path_to_unification_mapping_json ./data/configs/unification_mapping.json \
-    --path_to_supported_labels_json ./data/configs/supported_classes.json \
-    --path_to_russian_to_english_mapping_json ./data/configs/russian_to_english_mapping.json \
-    --path_to_traced_model_checkpoint ./models/jit/eva_2_no_ema.pt \
-    --input_size 448
+python ./irbis_classifier/cli/saving/save_as_traced_model.py --path_to_config ./data/configs/saving_config.json 
 ```
 
 ```bash

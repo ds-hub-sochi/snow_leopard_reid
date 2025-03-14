@@ -162,7 +162,7 @@ def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-argum
         'f1_score',
         'precision_score',
         'recall_score',
-    ],
+    ]
 
     metrics_results, confusion_matrix = test_model(
         test_dataloader,
@@ -172,7 +172,7 @@ def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-argum
         alpha,
     )
 
-    for normalization in ['over actual', 'over predicted']:
+    for normalization in ('over actual', 'over predicted'):
         create_confusion_matrix(
             confusion_matrix,
             [label_encoder.get_label_by_index(i) for i in range(label_encoder.get_number_of_classes())],
@@ -192,7 +192,7 @@ def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-argum
             save=True,
             save_dir=path_to_save_dir,
             metric_name=current_metric_name,
-            labels=[label_encoder.get_label_by_index(i) for i in metrics_results[current_metric_name][1]],
+            labels=[label_encoder.get_label_by_index(i) for i in current_metrics_results[1]],
         )
 
         for index in list(current_metrics_results[1].keys()):

@@ -116,15 +116,15 @@ class ClassificationTester(ClassificationTesterInterface):
         if metric_kwargs is None:
             metric_kwargs = {}
 
-        y_true_array = np.arrany(y_true)
+        y_true_array = np.array(y_true)
         y_predicted_array = np.array(y_predicted)
 
-        bootstrap_indexes = np.random.choice(np.arange(y_true_array.shape[0]), size=(bootstrap_size, y_true_array.shape[0]))
+        bootstrap_indexes: npt.NDArray[np.int_] = np.random.choice(np.arange(y_true_array.shape[0]), size=(bootstrap_size, y_true_array.shape[0]))
         
-        y_true_bootstrapped = y_true_array[bootstrap_indexes]
-        y_predicted_bootstrapped = y_predicted_array[bootstrap_indexes]
+        y_true_bootstrapped: npt.NDArray[np.int_] = y_true_array[bootstrap_indexes]
+        y_predicted_bootstrapped: npt.NDArray[np.int_] = y_predicted_array[bootstrap_indexes]
 
-        metric_estimations = np.array(
+        metric_estimations: npt.NDArray[np.float_] = np.array(
             list(
                 Parallel(n_jobs=os.cpu_count())(delayed(metric)(temp_true, temp_predicted, **metric_kwargs) for \
                 temp_true, temp_predicted in zip(y_true_bootstrapped, y_predicted_bootstrapped))

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
 
 import click
@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 
 from irbis_classifier.src.label_encoder import create_label_encoder, LabelEncoder
 from irbis_classifier.src.plots import create_barplot_with_confidence_intervals, create_confusion_matrix
-from irbis_classifier.src.testing.utils import test_model
+from irbis_classifier.src.testing.test import test_model
 from irbis_classifier.src.testing.testers import MetricsEstimations
 from irbis_classifier.src.training.datasets import AnimalDataset
 from irbis_classifier.src.training.transforms import get_val_transforms
@@ -158,50 +158,57 @@ def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-argum
         num_workers=os.cpu_count(),
     )
 
-    f1_score_macro, test_metrics, confusion_matrix = test_model(
+    metrics: list[str] = [
+        'f1_score',
+        'precision_score',
+        'recall_score',
+    ],
+
+    metrics_results, confusion_matrix = test_model(
         test_dataloader,
         model,
+        metrics,
         bootstrap_size,
         alpha,
     )
 
-    create_barplot_with_confidence_intervals(
-        f1_score_macro,
-        test_metrics,
-        1.0,
-        show=False,
-        save=True,
-        save_dir=path_to_save_dir,
-        labels=[label_encoder.get_label_by_index(i) for i in test_metrics],
-    )
-
-    create_confusion_matrix(
-        confusion_matrix,
-        [label_encoder.get_label_by_index(i) for i in range(label_encoder.get_number_of_classes())],
-        show=False,
-        save=True,
-        save_dir=path_to_save_dir,
-    )
-
-    for index in list(test_metrics.keys()):
-        test_metrics[label_encoder.get_english_label_by_index(index)] = test_metrics[index]
-        del test_metrics[index]
-
-    logger.info(
-        f'f1 macro: point estimations = {f1_score_macro.point:.4f}, upper = {f1_score_macro.upper:.4f}, ' +
-        f'lower = {f1_score_macro.lower:.4f}' 
-    )
-
-    for label, metric in test_metrics.items():
-        logger.info(
-            f'{label}: point estimations = {metric.point:.4f}, upper = {metric.upper:.4f}, ' + 
-            f'lower = {metric.lower:.4f}',
+    for normalization in ['over actual', 'over predicted']:
+        create_confusion_matrix(
+            confusion_matrix,
+            [label_encoder.get_label_by_index(i) for i in range(label_encoder.get_number_of_classes())],
+            normalize=normalization,
+            show=False,
+            save=True,
+            save_dir=path_to_save_dir,
+            title=f'Confusion matrix\n(normalized {normalization})'
         )
 
-    metrics_json: MetricsJson = MetricsJson(
-        f1_score_macro,
-        test_metrics,
-    )
+    for current_metric_name, current_metrics_results in metrics_results.items():
+        create_barplot_with_confidence_intervals(
+            current_metrics_results[0],
+            current_metrics_results[1],
+            1.0,
+            show=False,
+            save=True,
+            save_dir=path_to_save_dir,
+            metric_name=current_metric_name,
+            labels=[label_encoder.get_label_by_index(i) for i in metrics_results[current_metric_name][1]],
+        )
+
+        for index in list(current_metrics_results[1].keys()):
+            current_metrics_results[1][label_encoder.get_english_label_by_index(index)] = current_metrics_results[1][index]
+            del current_metrics_results[1][index]
+
+        logger.info(
+            f'{current_metric_name} macro: point estimations: {current_metrics_results[0].point:.4f}, ' +
+            f'lower: {current_metrics_results[0].lower:.4f}, upper: {current_metrics_results[0].upper:.4f}' 
+        )
+
+        for label, metric in current_metrics_results[1].items():
+            logger.info(
+                f'{current_metric_name} for {label}: point estimations: {metric.point:.4f}, ' +
+                f'lower: {metric.lower:.4f}, upper: {metric.upper:.4f}',
+            )
 
     with open(
         path_to_save_dir / 'metrics.json',
@@ -209,10 +216,10 @@ def run_testing(  # pylint: disable=too-many-positional-arguments,too-many-argum
         encoding='utf-8',
     ) as metrics_file:
         json.dump(
-            asdict(metrics_json),
+            metrics_results,
             metrics_file,
+            default=vars,
         )
-
 
 if __name__ == "__main__":
     run_testing()  # pylint: disable=no-value-for-parameter

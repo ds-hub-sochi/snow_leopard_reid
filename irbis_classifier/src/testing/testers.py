@@ -29,7 +29,7 @@ class ClassificationTesterInterface(ABC):
     @abstractmethod
     def get_estimation_over_class(  # pylint: disable=too-many-positional-arguments
         self,
-        metric: Callable[[T, T], float],
+        metric: Callable[[T, T, Any], float],
         y_true: T,
         y_predicted: T,
         bootstrap_size: int = 10000,
@@ -39,9 +39,9 @@ class ClassificationTesterInterface(ABC):
         pass
 
     @abstractmethod
-    def _get_class_estimations(  # pylint: disable=too-many-positional-arguments
+    def get_cumulative_estimate(  # pylint: disable=too-many-positional-arguments
         self,
-        metric: Callable[[T, T], float],
+        metric: Callable[[T, T, Any], float],
         y_true: npt.NDArray[np.int_],
         y_predicted: npt.NDArray[np.int_],
         bootstrap_size: int = 10000,
@@ -54,7 +54,7 @@ class ClassificationTesterInterface(ABC):
 class ClassificationTester(ClassificationTesterInterface):
     def get_estimation_over_class(  # pylint: disable=too-many-positional-arguments
         self,
-        metric: Callable[[T, T], float],
+        metric: Callable[[T, T, Any], float],
         y_true: T,
         y_predicted: T,
         bootstrap_size: int = 10000,
@@ -93,7 +93,7 @@ class ClassificationTester(ClassificationTesterInterface):
             current_label_y_predicted[current_label_y_predicted != label] = label + 1
             current_label_y_predicted = np.where(current_label_y_predicted == label, 1, 0)
 
-            estimations[label] = self._get_class_estimations(
+            estimations[label] = self.get_cumulative_estimate(
                 metric,
                 current_label_y_true,
                 current_label_y_predicted,
@@ -104,11 +104,11 @@ class ClassificationTester(ClassificationTesterInterface):
 
         return estimations
 
-    def _get_class_estimations(  # pylint: disable=too-many-positional-arguments
+    def get_cumulative_estimate(  # pylint: disable=too-many-positional-arguments
         self,
         metric: Callable[[T, T, Any], float],
-        y_true: npt.NDArray[np.int_],
-        y_predicted: npt.NDArray[np.int_],
+        y_true: T,
+        y_predicted: T,
         bootstrap_size: int = 10000,
         alpha: float = 0.95,
         metric_kwargs: dict[str, str] | None = None,
@@ -116,12 +116,15 @@ class ClassificationTester(ClassificationTesterInterface):
         if metric_kwargs is None:
             metric_kwargs = {}
 
-        bootstrap_indexes = np.random.choice(np.arange(y_true.shape[0]), size=(bootstrap_size, y_true.shape[0]))
-        
-        y_true_bootstrapped = y_true[bootstrap_indexes]
-        y_predicted_bootstrapped = y_predicted[bootstrap_indexes]
+        y_true_array = np.array(y_true)
+        y_predicted_array = np.array(y_predicted)
 
-        metric_estimations = np.array(
+        bootstrap_indexes: npt.NDArray[np.int_] = np.random.choice(np.arange(y_true_array.shape[0]), size=(bootstrap_size, y_true_array.shape[0]))
+        
+        y_true_bootstrapped: npt.NDArray[np.int_] = y_true_array[bootstrap_indexes]
+        y_predicted_bootstrapped: npt.NDArray[np.int_] = y_predicted_array[bootstrap_indexes]
+
+        metric_estimations: npt.NDArray[np.float_] = np.array(
             list(
                 Parallel(n_jobs=os.cpu_count())(delayed(metric)(temp_true, temp_predicted, **metric_kwargs) for \
                 temp_true, temp_predicted in zip(y_true_bootstrapped, y_predicted_bootstrapped))
@@ -134,8 +137,8 @@ class ClassificationTester(ClassificationTesterInterface):
         )
 
         point_estimation: float = metric(
-            y_true=y_true,
-            y_pred=y_predicted,
+            y_true=y_true_array,
+            y_pred=y_predicted_array,
             **metric_kwargs,
         )
 

@@ -1,0 +1,24 @@
+{
+    "path_to_test_csv": "./data/processed/test.csv",
+    "path_to_traced_model": "./models/jit/eva_2_no_ema.pt",
+    "path_to_save_dir": "./reports/figures",
+    "batch_size": 32,
+    "confidence_interval_params": {
+        "bootstrap_size": 10000,
+        "alpha": 0.95
+    },
+    "label_encoder_params": {
+        "path_to_unification_mapping_json": "./data/configs/unification_mapping.json",
+        "path_to_supported_labels_json": "./data/configs/supported_classes.json",
+        "path_to_russian_to_english_mapping_json": "./data/configs/russian_to_english_mapping.json"
+    },
+    "image_resizing": {
+        "size_before_padding": 512,
+        "size_after_padding": 448
+    },
+    "normalization": {
+        "mean": [0.4815, 0.4578, 0.4082],
+        "std": [0.2686, 0.2613, 0.2758]
+    },
+    "metrics_to_use": ["f1_score", "precision_score", "recall_score"]
+}

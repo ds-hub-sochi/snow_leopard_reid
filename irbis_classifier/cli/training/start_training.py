@@ -146,7 +146,7 @@ class TrainingConfig:  # pylint: disable=too-many-instance-attributes
     type=click.Path(exists=True),
     help='path to the json-config file',
 )
-def start_training(  # pylint: disable=too-many-statements,too-many-localss
+def start_training(  # pylint: disable=too-many-statements,too-many-locals
     path_to_config: str | Path,
 ):
     with open(

@@ -4,17 +4,17 @@ import os
 from collections import defaultdict
 from glob import glob
 from pathlib import Path
-from typing import TypeVar
 import warnings
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import seaborn as sns
 from loguru import logger
 from matplotlib import pyplot as plt, rcParams
 from mpl_toolkits.axes_grid1 import ImageGrid
 
-from irbis_classifier.src.testing.utils import MetricsEstimations
+from irbis_classifier.src.testing.test import MetricsEstimations
 
 
 warnings.filterwarnings('ignore')
@@ -475,9 +475,10 @@ def create_barplot_with_confidence_intervals(  # pylint: disable=too-many-positi
     show: bool,
     save: bool,
     save_dir: str | Path | None,
+    metric_name: str | None,
     labels: list[str],
 ):
-    logger.info("barplot with metric's value over classes creation has started")
+    logger.info(f'barplot with the value of {metric_name} over classes creation has started')
 
     with sns.color_palette(
         'deep',
@@ -549,7 +550,7 @@ def create_barplot_with_confidence_intervals(  # pylint: disable=too-many-positi
         )
 
         plt.title(
-            f"Metric's value with confidence intervals \n f-score macro = {f1_score_macro.point:.3f}",
+            f'Value of the {metric_name} with confidence intervals \n point estimate = {f1_score_macro.point:.3f}',
             fontsize=EXTREMELY_SUPER_LARGE_SIZE,
         )
 
@@ -563,36 +564,79 @@ def create_barplot_with_confidence_intervals(  # pylint: disable=too-many-positi
             parents=True,
         )
 
-        plt.savefig(save_dir / 'metric_over_classes.png')  # type: ignore
+        plt.savefig(save_dir / f'{metric_name}_over_classes.png')  # type: ignore
 
-    logger.success("barplot with metric's value over classes was created")
+    logger.success(f'barplot with the value of {metric_name} over classes was created')
 
-
-T = TypeVar('T', int, float)
 
 def create_confusion_matrix(
-    matrix: list[list[T]],
+    confision_matrix: list[list[int]] | npt.NDArray[np.float64],
     labels: list[str] | tuple[str],
+    normalize: str | None,
     show: bool,
     save: bool,
     save_dir: str | Path | None,
+    title: str | None = None,
 ) -> None:
-    logger.info("confusion matrix creation has started")
+    logger.info('confusion matrix creation has started')
+
+    assert normalize in ['over actual', 'over predicted'], '"normalize" must be either "over_actual" or "over predicted"'
+
+
+    if normalize == 'over actual':
+        """
+        for true_target, _ in enumerate(confision_matrix):  # yep, not good, but much more clear
+            row_sum: int = sum(confision_matrix[true_target])
+
+            for predicted_target in range(len(confision_matrix[true_target])):
+                confision_matrix[true_target][predicted_target] /= row_sum
+                confision_matrix[true_target][predicted_target] = round(
+                    confision_matrix[true_target][predicted_target],
+                    3,
+                )
+        """
+        confision_matrix = np.array(
+            confision_matrix,
+            dtype=np.float32,
+        )
+        sum_over_actual = np.sum(
+            confision_matrix,
+            axis=1,
+        ).reshape(-1, 1)
+        confision_matrix /= sum_over_actual
+
+    elif normalize == 'over predicted':
+        confision_matrix = np.array(
+            confision_matrix,
+            dtype=np.float32,
+        )
+        sum_over_predicted = np.sum(
+            confision_matrix,
+            axis=0,
+        ).reshape(1, -1)
+        confision_matrix /= sum_over_predicted
+
+    if normalize is not None:
+        def _round(arg: np.float32) -> np.float32:
+            return round(arg, 3)
+
+        _round_vectorized = np.vectorize(_round)
+
+        confision_matrix = _round_vectorized(confision_matrix)
 
     confusion_matrix_as_df: pd.DataFrame = pd.DataFrame(
-        matrix,
+        confision_matrix,
         index=labels,
         columns=labels,
     )
 
-    fig_width: int = round(len(labels))
-    plt.figure(figsize=(fig_width, fig_width))
+    plt.figure(figsize=(len(labels), len(labels)))
 
     axes: plt.axes = sns.heatmap(
         confusion_matrix_as_df,
         annot=True,
         annot_kws={
-            "size": MEDIUM_SIZE,
+            'size': MEDIUM_SIZE,
         }
     )
 
@@ -616,7 +660,7 @@ def create_confusion_matrix(
     )
 
     plt.title(
-        'Confusion matrix',
+        'Confusion matrix' if title is None else title,
         fontsize=LARGE_SIZE,
     )
 
@@ -629,7 +673,10 @@ def create_confusion_matrix(
             exist_ok=True,
             parents=True,
         )
+        if title is None:
+            plt.savefig(save_dir / 'confusion_matrix.png')  # type: ignore
+        else:
+            title = title.lower().replace(' ', '_').replace('\n', '_')
+            plt.savefig(save_dir / f'{title}.png')  # type: ignore
 
-        plt.savefig(save_dir / 'confusion_matrix.png')  # type: ignore
-
-    logger.success("confusion matrix was created")
+    logger.success('confusion matrix was created')

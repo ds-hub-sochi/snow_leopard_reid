@@ -42,4 +42,4 @@ def save_model_as_traced(
     )
     traced_model.save(save_path)
 
-    logger.success('model saved is traced model')
+    logger.success('model saved as traced model')

@@ -569,7 +569,7 @@ def create_barplot_with_confidence_intervals(  # pylint: disable=too-many-positi
     logger.success(f'barplot with the value of {metric_name} over classes was created')
 
 
-def create_confusion_matrix(
+def create_confusion_matrix(  # pylint: disable=too-many-positional-arguments
     confision_matrix: list[list[int]] | npt.NDArray[np.float64],
     labels: list[str] | tuple[str],
     normalize: str | None,
@@ -580,21 +580,10 @@ def create_confusion_matrix(
 ) -> None:
     logger.info('confusion matrix creation has started')
 
-    assert normalize in ['over actual', 'over predicted'], '"normalize" must be either "over_actual" or "over predicted"'
+    assert normalize in {'over actual', 'over predicted'}, '"normalize" must be either "over_actual" or "over predicted"'
 
 
     if normalize == 'over actual':
-        """
-        for true_target, _ in enumerate(confision_matrix):  # yep, not good, but much more clear
-            row_sum: int = sum(confision_matrix[true_target])
-
-            for predicted_target in range(len(confision_matrix[true_target])):
-                confision_matrix[true_target][predicted_target] /= row_sum
-                confision_matrix[true_target][predicted_target] = round(
-                    confision_matrix[true_target][predicted_target],
-                    3,
-                )
-        """
         confision_matrix = np.array(
             confision_matrix,
             dtype=np.float32,
@@ -622,7 +611,7 @@ def create_confusion_matrix(
 
         _round_vectorized = np.vectorize(_round)
 
-        confision_matrix = _round_vectorized(confision_matrix)
+        confision_matrix = _round_vectorized(confision_matrix)  # pylint: disable=redefined-variable-type
 
     confusion_matrix_as_df: pd.DataFrame = pd.DataFrame(
         confision_matrix,

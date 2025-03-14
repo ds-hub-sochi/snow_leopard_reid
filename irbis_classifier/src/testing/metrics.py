@@ -3,7 +3,6 @@ from __future__ import annotations
 import inspect
 import sys
 from collections.abc import Callable, Sequence
-from typing import Type
 
 import sklearn.metrics as sklearn_metrics
 
@@ -31,7 +30,7 @@ class MetricFactory:
     def get_metrics_funcion(
         self,
         metric_name: str,
-    ) -> Type[Callable[[Sequence[int], Sequence[int]], float]]:
+    ) -> Callable[[Sequence[int], Sequence[int]], float]:
         for object_name, obj in inspect.getmembers(sys.modules[__name__]):
             if inspect.isfunction(obj) and object_name == metric_name:
                 return obj

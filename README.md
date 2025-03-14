@@ -107,20 +107,7 @@ python ./irbis_classifier/cli/saving/save_as_traced_model.py \
 ```
 
 ```bash
-python ./irbis_classifier/cli/testing/start_testing.py \
-    --path_to_test_csv ./data/processed/test.csv \
-    --path_to_traced_model ./models/jit/eva_2_no_ema.pt \
-    --batch_size 32 \
-    --bootstrap_size 100000 \
-    --alpha 0.95 \
-    --path_to_save_dir ./reports/figures \
-    --path_to_unification_mapping_json ./data/configs/unification_mapping.json \
-    --path_to_supported_labels_json ./data/configs/supported_classes.json \
-    --path_to_russian_to_english_mapping_json ./data/configs/russian_to_english_mapping.json \
-    --mean "0.4815,0.4578,0.4082" \
-    --std "0.2686,0.2613,0.2758" \
-    --max_size 512 \
-    --resize 448
+python ./irbis_classifier/cli/testing/start_testing.py --path_to_config ./data/configs/testing_config.json
 ```
 
 # Dropped labels:

@@ -44,12 +44,12 @@ ORIGIANAL_NAMING_TO_RUSSIAN: dict[str, str] = {
     type=click.Path(exists=True),
     help='The path to the data directory',
 )
-def add_data(
+def add_data(  # pylint: disable=too-many-locals,too-many-statements
     path_to_data: str | Path,
-) -> None:  # pylint: disable=too-many-locals
+) -> None:
     repository_root_dir: Path = Path(__file__).parent.parent.parent.parent.resolve()
 
-    next_stage_index: int = len(glob(str(repository_root_dir / 'data' / 'raw' / 'full_images' / '*'))) + 1
+    next_stage_index: int = len(glob.glob(str(repository_root_dir / 'data' / 'raw' / 'full_images' / '*'))) + 1
     save_dir: Path = repository_root_dir / 'data' / 'raw'
     for subdir in ('full_images', 'detection_labels'):
         (save_dir / subdir / f'stage_{next_stage_index}').mkdir(
@@ -94,19 +94,19 @@ def add_data(
         current_markup_dir = markup_dir / year
         current_content_dir = content_dir / year / 'VIDEO'
 
-        for dir in {current_markup_dir, current_content_dir}:
+        for current_dir in (current_markup_dir, current_content_dir):
             labels = []
-            for (_, dirnames, _) in walk(dir):
+            for (_, dirnames, _) in walk(current_dir):
                 labels.extend(dirnames)
                 break
 
             for label in labels:
                 rename(
-                    str(dir / label),
-                    str(dir / label.lower()),
+                    str(current_dir / label),
+                    str(current_dir / label.lower()),
                 )
 
-    for year in years:
+    for year in years:  # pylint: disable=too-many-nested-blocks
         current_markup_dir = markup_dir / year
 
         labels: list[str] = []
@@ -157,8 +157,8 @@ def add_data(
                     current_markup['detections'] = dict(sorted(current_markup['detections'].items()))
                     keys: list[int] = list(current_markup['detections'].keys())
 
-                    video_capture = cv2.VideoCapture(content_dir / year / 'VIDEO' / label / video_name)
-                    fps: int = int(video_capture.get(cv2.CAP_PROP_FPS))
+                    video_capture = cv2.VideoCapture(content_dir / year / 'VIDEO' / label / video_name)  # pylint: disable=no-member
+                    fps: int = int(video_capture.get(cv2.CAP_PROP_FPS))  # pylint: disable=no-member
 
                     success, image = video_capture.read()
                     count: int = 0
@@ -185,13 +185,13 @@ def add_data(
 
                                     markup_file.write(f'{0} {x_center} {y_center} {width} {height}\n')
 
-                            cv2.imwrite(
+                            cv2.imwrite(  # pylint: disable=no-member
                                 current_images_save_dir / f'{video_name[:-4]}_{count}.JPG',
                                 image,
                             )
                         count += (fps // N_IMAGES_PER_FRAME)
                         video_capture.set(
-                            cv2.CAP_PROP_POS_FRAMES,
+                            cv2.CAP_PROP_POS_FRAMES,  # pylint: disable=no-member
                             count,
                         )
                         success, image = video_capture.read()

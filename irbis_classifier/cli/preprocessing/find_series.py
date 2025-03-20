@@ -81,7 +81,7 @@ def construct_series(
     type=click.Path(exists=True),
     help='The path to the json file with the russian to english mapping',
 )
-def find_series(
+def find_series(  # pylint: disable=too-many-positional-arguments
     path_to_data_dir: Path | str,
     path_to_save_dir: Path | str,
     old_stages: str,
@@ -147,7 +147,7 @@ def find_series(
 
     for stage in stages:
         logger.info(f'processing {stage}')
-        current_stage_df: pd.DataFrame | None = construct_series(  # pylint: disable=too-many-function-args
+        current_stage_df: pd.DataFrame | None = construct_series(
             path_to_data_dir / stage,
             label_encoder
         )

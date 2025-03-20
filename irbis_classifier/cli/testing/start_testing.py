@@ -179,5 +179,7 @@ def run_testing(
             default=vars,
         )
 
+    logger.success(f'Results were saved to the {config.path_to_save_dir} directory')
+
 if __name__ == "__main__":
     run_testing()  # pylint: disable=no-value-for-parameter

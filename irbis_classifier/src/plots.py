@@ -587,7 +587,6 @@ def create_confusion_matrix(  # pylint: disable=too-many-positional-arguments
 
     assert normalize in {'over actual', 'over predicted'}, '"normalize" must be either "over_actual" or "over predicted"'
 
-
     if normalize == 'over actual':
         confision_matrix = np.array(
             confision_matrix,
@@ -617,6 +616,8 @@ def create_confusion_matrix(  # pylint: disable=too-many-positional-arguments
         _round_vectorized = np.vectorize(_round)
 
         confision_matrix = _round_vectorized(confision_matrix)  # pylint: disable=redefined-variable-type
+
+    labels = labels[:confision_matrix.shape[0]]
 
     confusion_matrix_as_df: pd.DataFrame = pd.DataFrame(
         confision_matrix,

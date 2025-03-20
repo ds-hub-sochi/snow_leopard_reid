@@ -59,8 +59,21 @@ def construct_series(
 
 
 @click.command()
-@click.option('--path_to_data_dir', type=click.Path(exists=True), help='The path to the data directory')
-@click.option('--path_to_save_dir', type=click.Path(), help='The path to the data directory')
+@click.option(
+    '--path_to_data_dir',
+    type=click.Path(exists=True),
+    help='The path to the data directory',
+)
+@click.option(
+    '--path_to_save_dir',
+    type=click.Path(),
+    help='The path to the data directory',
+)
+@click.option(
+    '--stages_to_ignore',
+    type=str,
+    help='stages you want to skip for now. Must me a comma-separated string of ints',
+)
 @click.option(
     '--path_to_unification_mapping_json',
     type=click.Path(exists=True),
@@ -79,6 +92,7 @@ def construct_series(
 def find_series(
     path_to_data_dir: Path | str,
     path_to_save_dir: Path | str,
+    stages_to_ignore: str,
     path_to_unification_mapping_json: Path | str,
     path_to_supported_labels_json: Path | str,
     path_to_russian_to_english_mapping_json: Path | str,
@@ -94,7 +108,11 @@ def find_series(
         parents=True,
     )
 
+    stages_to_ignore_list: set[str] = {'stage_' + stage_number for stage_number in stages_to_ignore.split(',')}
+
     stages: list[str] = [f.path.split('/')[-1] for f in os.scandir(path_to_data_dir) if Path(path_to_data_dir).is_dir()]
+    stages = [stage for stage in stages if stage not in stages_to_ignore_list]
+
     for stage in stages:
         logger.info(f'processing {stage}')
         current_stage_df: pd.DataFrame | None = construct_series(  # pylint: disable=too-many-function-args

@@ -57,6 +57,13 @@ def run_saving(
     ) as json_file:
         config: SavingConfig = SavingConfig(**json.load(json_file))
 
+    checkpoint_dir: Path = Path(config.path_to_traced_model_checkpoint).parent
+    if not checkpoint_dir.exists():
+        logger.warning("directory you've provided as a checkpoint doesn't exists; it was manually created")
+        checkpoint_dir.mkdir(
+            parents=True,
+        )
+
     label_encoder: LabelEncoder = create_label_encoder(
         path_to_unification_mapping_json=config.label_encoder_params.path_to_russian_to_english_mapping_json,
         path_to_supported_classes_json=config.label_encoder_params.path_to_supported_labels_json,

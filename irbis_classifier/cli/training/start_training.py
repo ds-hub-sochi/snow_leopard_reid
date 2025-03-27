@@ -133,8 +133,8 @@ class TrainingConfig:  # pylint: disable=too-many-instance-attributes
         current_date: str = datetime.today().strftime('%Y-%m-%d')
 
         self.path_to_checkpoints_dir = Path(self.path_to_checkpoints_dir).resolve()
-        path_to_checkpoints_dir = self.path_to_checkpoints_dir / self.run_name / current_date
-        path_to_checkpoints_dir.mkdir(
+        self.path_to_checkpoints_dir = self.path_to_checkpoints_dir / self.run_name / current_date
+        self.path_to_checkpoints_dir.mkdir(
             parents=True,
             exist_ok=True,
         )

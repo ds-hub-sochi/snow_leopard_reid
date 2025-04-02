@@ -49,33 +49,33 @@ def add_data(  # pylint: disable=too-many-locals,too-many-statements
 ) -> None:
     repository_root_dir: Path = Path(__file__).parent.parent.parent.parent.resolve()
 
-    next_stage_index = 5
-    """
-    next_stage_index: int = len(glob.glob(str(repository_root_dir / 'data' / 'raw' / 'full_images' / '*'))) + 1
-    """
-    
+    next_stage_index: int = len(glob.glob(str(repository_root_dir / 'data' / 'raw' / 'full_images' / '*'))) + 1    
     save_dir: Path = repository_root_dir / 'data' / 'raw'
     
-    """
     for subdir in ('full_images', 'detection_labels'):
         (save_dir / subdir / f'stage_{next_stage_index}').mkdir(
             exist_ok=True,
             parents=True,
         )
-    """
 
     temp_dir: Path = save_dir / 'temp'
-    """
 
     path_to_data = Path(path_to_data).resolve()
 
     content_dir: Path = path_to_data / 'content'
     markup_dir: Path = path_to_data / 'markup'
 
-    copytree(content_dir, temp_dir / 'content', dirs_exist_ok=True)
-    copytree(markup_dir, temp_dir / 'markup', dirs_exist_ok=True)
+    copytree(
+        content_dir,
+        temp_dir / 'content',
+        dirs_exist_ok=True,
+    )
+    copytree(
+        markup_dir,
+        temp_dir / 'markup',
+        dirs_exist_ok=True,
+    )
     logger.info(f'content was replaced into the temprorary dir {temp_dir}')
-    """
 
     content_dir = temp_dir / 'content'
     markup_dir = temp_dir / 'markup'
@@ -178,7 +178,7 @@ def add_data(  # pylint: disable=too-many-locals,too-many-statements
                     while success and count < len(list(current_markup['detections'])):
                         current_bboxes: list[dict[int, float]] = \
                             [elem['bbox'] for elem in current_markup['detections'][keys[count]] if elem['conf'] > 0.5]
-                        
+
                         if len(current_bboxes) > 0:
                             with open(
                                 current_markup_save_dir / f'{video_name[:-4]}_{count}.txt',
@@ -209,8 +209,8 @@ def add_data(  # pylint: disable=too-many-locals,too-many-statements
                         success, image = video_capture.read()
                 logger.success(f'ended with {label}')
 
-    # rmtree(str(temp_dir))
-    # logger.info('temprorary dir was removed')
+    rmtree(str(temp_dir))
+    logger.info('temprorary dir was removed')
 
 
 if __name__ == '__main__':

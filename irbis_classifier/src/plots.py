@@ -399,7 +399,7 @@ def create_sequence_length_histogram_comparison(  # pylint: disable=too-many-pos
             color='red' if difference < 0 else 'blue',
             fontweight='bold',
             fontsize=8,
-            rotation=30,
+            rotation=75,
         )
 
     labels = [item.get_text() for item in ax.get_xticklabels()]

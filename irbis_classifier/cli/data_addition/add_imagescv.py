@@ -7,7 +7,6 @@ from typing import Any
 
 import click
 import numpy as np
-import pandas as pd
 import torch
 from loguru import logger
 from PIL import Image
@@ -21,7 +20,7 @@ ORIGIANAL_NAMING_TO_RUSSIAN: dict[str, str] = {
 }
 
 
-def detection_image(
+def detection_image(  # pylint: disable=too-many-locals
     image: np.ndarray,
     detection_model: pw_detection.MegaDetectorV5,
     confidence_threshold: float = 0.5,
@@ -43,11 +42,11 @@ def detection_image(
     image_height, image_width, _ = image.shape
 
     markup: list[dict[str, float]] = []
-    for i in range(len(detection_markup)):
-        x_upper_left: int = int(detection_markup[i][0])
-        y_upper_left: int = int(detection_markup[i][1])
-        x_lower_right: int = int(detection_markup[i][2])
-        y_lower_right: int = int(detection_markup[i][3])
+    for current_markup in detection_markup:
+        x_upper_left: int = int(current_markup[0])
+        y_upper_left: int = int(current_markup[1])
+        x_lower_right: int = int(current_markup[2])
+        y_lower_right: int = int(current_markup[3])
     
         x_center: float = (x_upper_left + (x_lower_right - x_upper_left) / 2) / image_width
         y_center: float = (y_upper_left + (y_lower_right - y_upper_left) / 2) / image_height
@@ -68,9 +67,9 @@ def detection_image(
 
 @click.command()
 @click.option('--path_to_data', type=click.Path(exists=True), help='The path to the data directory')
-def add_data(
+def add_data(  # pylint: disable=too-many-locals
     path_to_data: str | Path,
-) -> None:  # pylint: disable=too-many-locals
+) -> None:
     repository_root_dir: Path = Path(__file__).parent.parent.parent.parent.resolve()
 
     next_stage_index: int = len(glob(str(repository_root_dir / 'data' / 'raw' / 'full_images' / '*'))) + 1
@@ -110,25 +109,25 @@ def add_data(
 
         for img_path in tqdm(glob(f'{subdir}/**', recursive=True)):
             img_path = Path(img_path)
-            if img_path.is_file() and img_path.suffix.lower() in ['.jpg', '.jpeg', '.png']:
+            if img_path.is_file() and img_path.suffix.lower() in {'.jpg', '.jpeg', '.png'}:
                 img = np.array(Image.open(str(img_path)).convert('RGB'))
 
-                result_detect: list[dict[str, float]] = detection_image(
+                detection_results: list[dict[str, float]] = detection_image(
                     img,
                     detection_model,
                 )
 
-                if len(result_detect) > 0:
-                    for j in range(len(result_detect)):
+                if len(detection_results) > 0:
+                    for current_results in detection_results:
                         with open(
                             markup_save_dir / label / f'{img_path.stem}.txt',
                             'w',
                             encoding='utf-8',
                         ) as f:
-                            x_center: float = result_detect[j]['x_center']
-                            y_center: float = result_detect[j]['y_center']
-                            width: float = result_detect[j]['width']
-                            height: float = result_detect[j]['height']
+                            x_center: float = current_results['x_center']
+                            y_center: float = current_results['y_center']
+                            width: float = current_results['width']
+                            height: float = current_results['height']
 
                             f.write(f'0 {x_center} {y_center} {width} {height}\n')
 

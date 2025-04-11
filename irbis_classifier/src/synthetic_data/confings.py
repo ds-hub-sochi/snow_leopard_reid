@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 @dataclass
 class OneSpecieConfig:
-    label: str
+    russian_label: str
     prompt: Sequence[str]
     guidance_scale: float
     number_of_images: int

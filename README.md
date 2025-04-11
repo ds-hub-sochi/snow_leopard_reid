@@ -81,6 +81,20 @@ python ./irbis_classifier/cli/saving/save_as_traced_model.py --path_to_config ./
 python ./irbis_classifier/cli/testing/start_testing.py --path_to_config ./data/configs/testing_config.json
 ```
 
+```bash
+python ./irbis_classifier/cli/synthetic_data_gereration/generate_examples.py  \
+    --path_to_config ./data/configs/generation_config.json \
+    --dump_dir ./data/flux_examples
+```
+
+```bash
+python ./irbis_classifier/cli/synthetic_data_gereration/extend_train_dataset.py  \
+    --path_to_config ./data/configs/generation_config.json \
+    --path_to_unification_mapping_json ./data/configs/unification_mapping.json \
+    --path_to_supported_labels_json ./data/configs/supported_classes.json \
+    --path_to_russian_to_english_mapping_json ./data/configs/russian_to_english_mapping.json
+```
+
 # Dropped labels:
 
 For 28.01.25:

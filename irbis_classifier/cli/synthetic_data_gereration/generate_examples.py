@@ -23,9 +23,16 @@ from irbis_classifier.src.synthetic_data.confings import GenerationConfig
     type=click.Path(),
     help='directory where generated images will be stored',
 )
+@click.option(
+    '--num_images_per_prompt',
+    type=int,
+    default=50,
+    help="number of images that model will parallel generate. Depend on your GPU's capacity"
+)
 def main(
     path_to_config: str | Path,
-    dump_dir: str | Path,    
+    dump_dir: str | Path,  
+    num_images_per_prompt: int = 50,  
 ):
     with open(
         path_to_config,
@@ -35,12 +42,6 @@ def main(
         config: GenerationConfig = GenerationConfig(json.load(json_file))
 
     dump_dir: Path = Path(dump_dir).resolve()
-    dump_dir.mkdir(
-        exist_ok=True,
-        parents=True,
-    )
-
-    num_images_per_prompt: int = 40
 
     device: torch.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -50,9 +51,9 @@ def main(
     ).to(device)
 
     for specied_config in config:
-        logger.info(f'generating examples for the {specied_config.label}')
+        logger.info(f'generating examples for the {specied_config.russian_label}')
 
-        current_dump_dir: Path = dump_dir / specied_config.label
+        current_dump_dir: Path = dump_dir / specied_config.russian_label
         current_dump_dir.mkdir(
             exist_ok=True,
             parents=True,
@@ -65,11 +66,6 @@ def main(
             specied_config.negative_prompt_2,
         ):
             number_of_images: int = specied_config.number_of_images
-
-            prompt: str = prompt.format(specied_config.label)
-            prompt_2: str = prompt_2.format(specied_config.label)
-            negative_prompt: str = negative_prompt.format(specied_config.label)
-            negative_prompt_2: str = negative_prompt_2.format(specied_config.label)
 
             while number_of_images > 0:
                 n_images_to_generate: int = min(
@@ -87,10 +83,10 @@ def main(
                 ).images
 
                 for image in images:
-                    image.save(current_dump_dir / f'{specied_config.label}_{number_of_images}.jpg')
+                    image.save(current_dump_dir / f'{number_of_images}.jpg')
                     number_of_images -= 1
 
-        logger.success(f'ended with {specied_config.label}')
+        logger.success(f'ended with {specied_config.russian_label}')
 
 
 if __name__ == "__main__":

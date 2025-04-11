@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 from pathlib import Path
 
@@ -47,31 +49,27 @@ def main(
         torch_dtype=torch.bfloat16,
     ).to(device)
 
-    for i in range(len(config)):
-        logger.info(f'generating examples for the {config[i].label}')
+    for specied_config in config:
+        logger.info(f'generating examples for the {specied_config.label}')
 
-        current_dump_dir: Path = dump_dir / config[i].label
+        current_dump_dir: Path = dump_dir / specied_config.label
         current_dump_dir.mkdir(
             exist_ok=True,
             parents=True,
         )
 
         for prompt, prompt_2, negative_prompt, negative_prompt_2 in zip(
-            config[i].prompt,
-            config[i].prompt_2,
-            config[i].negative_prompt,
-            config[i].negative_prompt_2,
+            specied_config.prompt,
+            specied_config.prompt_2,
+            specied_config.negative_prompt,
+            specied_config.negative_prompt_2,
         ):
-            number_of_images = config[i].number_of_images
+            number_of_images: int = specied_config.number_of_images
 
-            if '{}' in prompt:
-                prompt = prompt.format(config[i].label)
-            if '{}' in prompt:
-                prompt_2 = prompt_2.format(config[i].label)
-            if '{}' in negative_prompt:
-                negative_prompt = negative_prompt.format(config[i].label)
-            if '{}' in negative_prompt_2:
-                negative_prompt_2 = negative_prompt_2.format(config[i].label)
+            prompt: str = prompt.format(specied_config.label)
+            prompt_2: str = prompt_2.format(specied_config.label)
+            negative_prompt: str = negative_prompt.format(specied_config.label)
+            negative_prompt_2: str = negative_prompt_2.format(specied_config.label)
 
             while number_of_images > 0:
                 n_images_to_generate: int = min(
@@ -83,16 +81,16 @@ def main(
                     prompt_2=prompt_2,
                     negative_prompt=negative_prompt,
                     negative_prompt_2=negative_prompt_2,
-                    guidance_scale=config[i].guidance_scale,
+                    guidance_scale=specied_config.guidance_scale,
                     num_inference_steps=30,
                     num_images_per_prompt=n_images_to_generate,
                 ).images
 
                 for image in images:
-                    image.save(current_dump_dir / f'{config[i].label}_{number_of_images}.jpg')
+                    image.save(current_dump_dir / f'{specied_config.label}_{number_of_images}.jpg')
                     number_of_images -= 1
 
-        logger.success(f'ended with {config[i].label}')
+        logger.success(f'ended with {specied_config.label}')
 
 
 if __name__ == "__main__":

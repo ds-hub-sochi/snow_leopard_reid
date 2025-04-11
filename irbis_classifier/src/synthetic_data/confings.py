@@ -23,8 +23,8 @@ class GenerationConfig:
     species_confings: Sequence[OneSpecieConfig]
 
     def __post_init__(self):
-        for i in range(len(self.species_confings)):
-            self.species_confings[i] = OneSpecieConfig(**self.species_confings[i])
+        for i, specied_config in enumerate(self.species_confings):
+            self.species_confings[i] = OneSpecieConfig(**specied_config)
 
 
     def __len__(self) -> int:

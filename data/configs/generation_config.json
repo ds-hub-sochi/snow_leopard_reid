@@ -1,0 +1,36 @@
+[
+    {
+        "label": "European badger",
+        "prompt": [
+            "cameratrap photo of a {} in the wildlife, photorealistic, from the side"
+        ],
+        "prompt_2": [
+            ""
+        ],
+        "negative_prompt": [
+            ""
+        ],
+        "negative_prompt_2": [
+            ""
+        ],
+        "guidance_scale": 7.5,
+        "number_of_images": 10
+    },
+    {
+        "label": "wolverine",
+        "prompt": [
+            "cameratrap photo of a {} in the wildlife, photorealistic"
+        ],
+        "prompt_2": [
+            "With strong limbs, broad and rounded head, small eyes and short rounded ears, it most closely resembles a large fisher. Though its legs are short, its large, five-toed paws with crampon-like claws and plantigrade posture enable it to climb up and over steep cliffs, trees and snow-covered peaks with relative ease."
+        ],
+        "negative_prompt": [
+            "fox"
+        ],
+        "negative_prompt_2": [
+            ""
+        ],
+        "guidance_scale": 9.5,
+        "number_of_images": 10
+    }
+]

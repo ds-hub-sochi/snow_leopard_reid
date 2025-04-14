@@ -36,6 +36,21 @@ class ClassificationTesterInterface(ABC):
         alpha: float = 0.95,
         metric_kwargs: dict[str, str] | None = None,
     ) -> dict[int, MetricsEstimations]:
+        """
+        This method independently computes some metric over every label presented in the dataset.
+        Confidence intervals will be computed using the bootstrap estimations
+
+        Args:
+            metric (Callable[[T, T, Any], float]): metric you want to use
+            y_true (T): ground true labels
+            y_predicted (T): predicted labels
+            bootstrap_size (int, optional): a size of a bootstrapped sample. Defaults to 10000.
+            alpha (float, optional): confidence level of a confidence interval. Defaults to 0.95.
+            metric_kwargs (dict[str, str] | None, optional): metrci specific kwargs. Defaults to None.
+
+        Returns:
+            dict[int, MetricsEstimations]: mapping from labels to metric's confidence intervals 
+        """
         pass
 
     @abstractmethod
@@ -48,6 +63,20 @@ class ClassificationTesterInterface(ABC):
         alpha: float = 0.95,
         metric_kwargs: dict[str, str] | None = None,
     ) -> MetricsEstimations:
+        """
+        Computes cumulative metric over the dataset
+
+        Args:
+            metric (Callable[[T, T, Any], float]): metric you want to use
+            y_true (T): ground true labels
+            y_predicted (T): predicted labels
+            bootstrap_size (int, optional): a size of a bootstrapped sample. Defaults to 10000.
+            alpha (float, optional): confidence level of a confidence interval. Defaults to 0.95.
+            metric_kwargs (dict[str, str] | None, optional): metrci specific kwargs. Defaults to None.
+
+        Returns:
+            MetricsEstimations: confidence interval for the given metric
+        """
         pass
 
 

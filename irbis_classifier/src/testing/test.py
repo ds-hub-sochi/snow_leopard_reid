@@ -19,6 +19,20 @@ def test_model(  # pylint: disable=too-many-locals
     bootstrap_size: int = 10000,
     alpha: float = 0.95,
 ) -> tuple[dict[str, tuple[MetricsEstimations, dict[int, MetricsEstimations]]], list[list[int]]]:
+    """
+    This function is used to test given model. It will compute a cumulative metrics over the dataset,
+    metrics over every label independently, and a confusion matrix. Confidence intervals will be computed using bootstrap.
+
+    Args:
+        model (nn.Module): model you want to test
+        metrics (Sequence[str]): metrics you want to use during the testing
+        bootstrap_size (int, optional): a size of a bootstrapped sample. Defaults to 10000.
+        alpha (float, optional): confidence level of a confidence interval. Defaults to 0.95.
+
+    Returns:
+        tuple[dict[str, tuple[MetricsEstimations, dict[int, MetricsEstimations]]], list[list[int]]]:
+        a mapping from metric to the cumulative metric's value, metric's values over every label, and a confusion matrix
+    """
     targets_lst: list[int] = []
     predicted_labels_lst: list[int] = []
 

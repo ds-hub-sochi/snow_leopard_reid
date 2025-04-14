@@ -6,26 +6,42 @@ import albumentations as A
 def get_val_transforms(
     mean: tuple[float, float, float] | list[float] = (0.485, 0.456, 0.406),
     std: tuple[float, float, float] | list[float] = (0.229, 0.224, 0.225),
-    max_size: int = 256,
-    resize: int = 224,
+    max_size_before_padding: int = 256,
+    max_size_after_padding: int = 224,
 ) -> A.Compose:
+    """
+    Returns a set of validation augmantations; To ensure proper ration between width and height of an animal2 stage resizing 
+    will be used. At the first stage, image will be resized with to make the biggest part of an image (width or height) equal
+    to the max_size_before_padding. Then padding will be used to make an image a center padded tensor. Then this tensor will
+    be resized to make all the tensors in a batch have the same max_size_after_padding size. At this stage thanks to the padding
+    all the images in the batch are square tensors.
+
+    Args:
+        mean (tuple[float, float, float] | list[float], optional): normalization mean. Defaults to (0.485, 0.456, 0.406).
+        std (tuple[float, float, float] | list[float], optional): normalization std. Defaults to (0.229, 0.224, 0.225).
+        max_size_before_padding (int, optional): max size of an image before padding is applied. Defaults to 256.
+        max_size_after_padding (int, optional): max size of an image after padding is applied. Defaults to 224.
+
+    Returns:
+        A.Compose: a set of validation augmantations
+    """
     val_transfroms: A.Compose = A.Compose(
         [
             A.LongestMaxSize(
-                max_size=max_size,
+                max_size=max_size_before_padding,
                 p=1.0,
             ),
             A.PadIfNeeded(
-                min_height=max_size,
-                min_width=max_size,
+                min_height=max_size_before_padding,
+                min_width=max_size_before_padding,
                 position='center',
                 border_mode=0,
                 fill=0,
                 p=1.0,
             ),
             A.Resize(
-                height=resize,
-                width=resize,
+                height=max_size_after_padding,
+                width=max_size_after_padding,
                 p=1.0,
             ),
             A.Normalize(
@@ -44,13 +60,29 @@ def get_val_transforms(
 def get_train_transforms(
     mean: tuple[float, float, float] | list[float] = (0.485, 0.456, 0.406),
     std: tuple[float, float, float] | list[float] = (0.229, 0.224, 0.225),
-    max_size: int = 256,
-    resize: int = 224,
+    max_size_before_padding: int = 256,
+    max_size_after_padding: int = 224,
 ) -> A.Compose:
+    """
+    Returns a set of training augmantations; To ensure proper ration between width and height of an animal2 stage resizing 
+    will be used. At the first stage, image will be resized with to make the biggest part of an image (width or height) equal
+    to the max_size_before_padding. Then padding will be used to make an image a center padded tensor. Then this tensor will
+    be resized to make all the tensors in a batch have the same max_size_after_padding size. At this stage thanks to the padding
+    all the images in the batch are square tensors.
+
+    Args:
+        mean (tuple[float, float, float] | list[float], optional): normalization mean. Defaults to (0.485, 0.456, 0.406).
+        std (tuple[float, float, float] | list[float], optional): normalization std. Defaults to (0.229, 0.224, 0.225).
+        max_size_before_padding (int, optional): max size of an image before padding is applied. Defaults to 256.
+        max_size_after_padding (int, optional): max size of an image after padding is applied. Defaults to 224.
+
+    Returns:
+        A.Compose: a set of training augmantations
+    """
     train_transforms: A.Compose = A.Compose(
         [
             A.LongestMaxSize(
-                max_size=max_size,
+                max_size=max_size_before_padding,
                 p=1.0,
             ),
             A.ToGray(
@@ -128,8 +160,8 @@ def get_train_transforms(
                 p=0.85,
             ),
             A.RandomCrop(
-                height=resize,
-                width=resize,
+                height=max_size_after_padding,
+                width=max_size_after_padding,
                 pad_if_needed=True,
                 border_mode=0,
                 fill=0,

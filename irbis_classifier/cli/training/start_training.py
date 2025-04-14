@@ -228,14 +228,14 @@ def start_training(  # pylint: disable=too-many-statements,too-many-locals
         train_transforms=get_train_transforms(
             mean=config.normalization.mean,
             std=config.normalization.std,
-            max_size=config.image_resizing.size_before_padding,
-            resize=config.image_resizing.size_after_padding,
+            max_size_before_padding=config.image_resizing.size_before_padding,
+            max_size_after_padding=config.image_resizing.size_after_padding,
         ),
         val_transforms=get_val_transforms(
             mean=config.normalization.mean,
             std=config.normalization.std,
-            max_size=config.image_resizing.size_before_padding,
-            resize=config.image_resizing.size_after_padding,
+            max_size_before_padding=config.image_resizing.size_before_padding,
+            max_size_after_padding=config.image_resizing.size_after_padding,
         ),
     )
 

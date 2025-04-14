@@ -1,5 +1,3 @@
-"""https://www.comet.com/docs/v2/api-and-sdk/python-sdk/reference/Experiment/ - полезная дока"""
-
 from __future__ import annotations
 
 import json

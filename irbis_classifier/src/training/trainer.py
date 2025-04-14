@@ -31,6 +31,9 @@ class EvalLogs(Logs):
 
 
 class TrainerInterface(ABC):
+    """
+    A trainer class that trains provided model
+    """
     def __init__(
         self,
         path_to_checkpoints_dir: str | Path,
@@ -63,6 +66,25 @@ class TrainerInterface(ABC):
         use_ema_model: bool = False,
         gradient_accumulation_steps: int = 1,
     ) -> None:
+        """
+        A base function for the model training. Call all the necessary steps inside;
+
+        Args:
+            model (torch.nn.Module): model you want to train
+            optimizer (torch.optim.optimizer.Optimizer): optimizer to use
+            scheduler (torch.optim.lr_scheduler.LRScheduler | None): learning rate scheduler to use
+            warmup_scheduler (warmup_schedulers.LinearWarmupLR | None): warmup scheduler to use
+            criterion (nn.Module): loss function to use
+            scaler (torch.optim.GradScaler): mixed precision scaler
+            n_epochs (int): number of training epochs
+            train_dataloader (torch.utils.data.DataLoader): train dataloader
+            val_dataloader (torch.utils.data.DataLoader): validation dataloader
+            device (torch.device): devicec to use
+            experiment (comet_ml.CometExperiment): Comet wrapper for logging
+            label_encoder (LabelEncoder): LabelEncoder instance that helps to work with labels properly
+            use_ema_model (bool, optional): will EMA model be trained or not. Defaults to False.
+            gradient_accumulation_steps (int, optional): how much gradient accumulation steps will be used. Defaults to 1.
+        """
         pass
 
     @abstractmethod
@@ -77,6 +99,9 @@ class TrainerInterface(ABC):
         ema_model: None | torch.optim.swa_utils.AveragedModel,
         gradient_accumulation_steps: int,
     ) -> Logs:
+        """
+        Used for the training
+        """
         pass
 
     @abstractmethod
@@ -88,6 +113,9 @@ class TrainerInterface(ABC):
         val_dataloader: torch.utils.data.DataLoader,
         device: torch.device,
     ) -> Logs:
+        """
+        Used for the validation
+        """
         pass
 
     @abstractmethod
@@ -99,6 +127,9 @@ class TrainerInterface(ABC):
         epoch: int,
         label_encoder: LabelEncoder,
     ) -> None:
+        """
+        Used for the logging
+        """
         pass
 
     @abstractmethod
@@ -108,6 +139,9 @@ class TrainerInterface(ABC):
         metric_value: float,
         model_postfix: str,
     ) -> None:
+        """
+        Used to save model checkpoints
+        """
         pass
 
 

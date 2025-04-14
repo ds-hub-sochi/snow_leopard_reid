@@ -4,33 +4,26 @@
         "prompt": [
             "cameratrap photo of a european badger in the wildlife, photorealistic, from the side"
         ],
-        "prompt_2": [
-            ""
-        ],
-        "negative_prompt": [
-            ""
-        ],
-        "negative_prompt_2": [
-            ""
-        ],
         "guidance_scale": 7.5,
-        "number_of_images": 10
+        "number_of_images": 500
     },
     {
-        "russian_label": "Росомаха",
+        "russian_label": "Другие животные",
         "prompt": [
-            "cameratrap photo of a wolverine in the wildlife, photorealistic"
+            "a cow at the distance from the side, photorealistic",
+            "a cow at the distance, photorealistic"
         ],
-        "prompt_2": [
-            "With strong limbs, broad and rounded head, small eyes and short rounded ears, it most closely resembles a large fisher. Though its legs are short, its large, five-toed paws with crampon-like claws and plantigrade posture enable it to climb up and over steep cliffs, trees and snow-covered peaks with relative ease."
+        "guidance_scale": 7.5,
+        "number_of_images": 200
+    },
+    {
+        "russian_label": "Другие животные",
+        "prompt": [
+            "a dog running on a grassland",
+            "a dog, wildlife, photorealistic",
+            "a dog in the forest, photorealistic"
         ],
-        "negative_prompt": [
-            "fox"
-        ],
-        "negative_prompt_2": [
-            ""
-        ],
-        "guidance_scale": 9.5,
-        "number_of_images": 10
+        "guidance_scale": 7.5,
+        "number_of_images": 200
     }
 ]

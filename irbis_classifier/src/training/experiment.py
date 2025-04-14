@@ -17,7 +17,17 @@ class ExperimentConfig:
 def setup_experimet(
     path_to_json_config: str | Path,
     run_name: str,
-):
+) -> CometExperiment:
+    """
+    A wrapper that creates a commet experiment
+
+    Args:
+        path_to_json_config (str | Path): path to json config with Comet specific private information
+        run_name (str): name of the current Comet run
+
+    Returns:
+        CometExperiment: an instance of a Comet experiment
+    """
     with open(
         path_to_json_config,
         'r',

@@ -57,6 +57,9 @@ class FocalLoss(nn.Module):
 
 
 class LossFactory:
+    """
+    A factory that creates a loss instance by its string name
+    """
     def _get_loss_class(
         self,
         loss_name: str,

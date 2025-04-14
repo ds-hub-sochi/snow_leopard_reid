@@ -9,6 +9,16 @@ def replace_last_linear(
     module: nn.Module,
     n_classes: int,
 ) -> nn.Module:
+    """
+    This function replaces last linear layer of given model with brand new layer with chosen output size
+
+    Args:
+        module (nn.Module): the model whose last line layer you want to replace
+        n_classes (int): output size of the new linear layer
+
+    Returns:
+        nn.Module: model with replaced last linear layer
+    """
     if isinstance(module, nn.Linear):
         in_features: int = module.in_features
 

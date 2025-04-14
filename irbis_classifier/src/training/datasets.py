@@ -11,6 +11,13 @@ from torch.utils.data import Dataset
 
 
 class AnimalDataset(Dataset):
+    """
+    A torch Dataset heir that will be used during trainig of the model 
+
+    Args:
+        path_to_split_file (str | Path): path to the csv file related to the current split; for example, train.csv
+        transforms (A.Compose): a set of Alvumentations augmentation that you want to apply
+    """
     def __init__(
         self,
         path_to_split_file: str | Path,
@@ -58,6 +65,17 @@ def create_train_val_test_datasets(
     train_transforms: A.Compose,
     val_transforms: A.Compose,
 ) -> tuple[AnimalDataset, AnimalDataset, AnimalDataset]:
+    """
+    A wrapper that creates train, val, and test datasets
+
+    Args:
+        path_to_data_dir (str | Path): path to the directory there split csv files stored
+        train_transforms (A.Compose): traininig augmentations; will be used for the train dataset
+        val_transforms (A.Compose): validation augmentations; will be used to the val and test datasets
+
+    Returns:
+        tuple[AnimalDataset, AnimalDataset, AnimalDataset]: train, val, and test datesets
+    """
     path_to_data_dir = Path(path_to_data_dir).resolve()
 
     train_dataset: AnimalDataset = AnimalDataset(

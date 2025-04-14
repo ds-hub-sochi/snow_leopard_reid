@@ -1,22 +1,30 @@
 # CLI usage
 
 ```bash
-python ./irbis_classifier/cli/preprocessing/find_series.py \   
+python ./irbis_classifier/cli/preprocessing/find_series.py \
     --path_to_data_dir ./data/raw/full_images \
     --path_to_save_dir ./data/interim/stage_with_series \
+    --old_stages "1,2,3,4,5,6" \
     --path_to_unification_mapping_json ./data/configs/unification_mapping.json \
-    --path_to_supported_labels_json ./data/configs/supported_classes.json
+    --path_to_supported_labels_json ./data/configs/supported_classes.json \
+    --path_to_russian_to_english_mapping_json ./data/configs/russian_to_english_mapping.json
 ```
 
 ```bash
-python ./irbis_classifier/cli/preprocessing/filter_duplicates.py \
+python ./irbis_classifier/cli/preprocessing/filter_broken_images.py \
     --path_to_data_dir ./data/interim/stage_with_series \
     --path_to_save_dir ./data/interim/stage_with_series_filtered
 ```
 
 ```bash
-python ./irbis_classifier/cli/preprocessing/sample_from_long_series.py \
+python ./irbis_classifier/cli/preprocessing/filter_duplicates.py \
     --path_to_data_dir ./data/interim/stage_with_series_filtered \
+    --path_to_save_dir ./data/interim/stage_with_series_without_duplicates
+```
+
+```bash
+python ./irbis_classifier/cli/preprocessing/sample_from_long_series.py \
+    --path_to_data_dir ./data/interim/stage_with_series_without_duplicates \
     --path_to_save_dir ./data/interim/stage_with_resampled_series \
     --classes_to_sample_json ./data/configs/classes_to_sample.json \
     --max_sequence_length 40 \
@@ -25,7 +33,7 @@ python ./irbis_classifier/cli/preprocessing/sample_from_long_series.py \
 
 ```bash
 python ./irbis_classifier/cli/reports/sequence_lenght.py \
-    --path_to_data_dir_before ./data/interim/stage_with_series_filtered \
+    --path_to_data_dir_before ./data/interim/stage_with_series_without_duplicates \
     --path_to_data_dir_after ./data/interim/stage_with_resampled_series \
     --path_to_save_dir ./reports/figures \
     --max_sequence_length 40
@@ -61,11 +69,49 @@ python ./irbis_classifier/cli/reports/test_augmentations.py \
     --n_samples 35
 ```
 
+```bash
+nohup python ./irbis_classifier/cli/training/start_training.py --path_to_config ./data/configs/training_config.json &
+```
+
+```bash
+python ./irbis_classifier/cli/saving/save_as_traced_model.py --path_to_config ./data/configs/saving_config.json 
+```
+
+```bash
+python ./irbis_classifier/cli/testing/start_testing.py --path_to_config ./data/configs/testing_config.json
+```
+
+```bash
+python ./irbis_classifier/cli/synthetic_data_gereration/generate_examples.py  \
+    --path_to_config ./data/configs/generation_config.json \
+    --dump_dir ./data/flux_examples
+```
+
+```bash
+nohup python ./irbis_classifier/cli/synthetic_data_gereration/extend_train_dataset.py  \
+    --path_to_config ./data/configs/generation_config.json \
+    --path_to_unification_mapping_json ./data/configs/unification_mapping.json \
+    --path_to_supported_labels_json ./data/configs/supported_classes.json \
+    --path_to_russian_to_english_mapping_json ./data/configs/russian_to_english_mapping.json &
+```
+
 # Dropped labels:
 
-For 28.01.25:
+For 14.04.25:
 
-* выдра
-* косуля
+* выдра - используются только данные с Калужских засек (stage 5)
+* косуля (в паке с Калужских засек используется в объединенном лейбле с Сибирской Косулей)
 * бенгальская кошка
-* хорек
+
+# Configs explanation
+
+* **unification_mapping** - у каждой картинки уже есть лейбл - они буквально лежат в папках, сформированных по лейблам. Здесь порядок не важен, потому что это словарик.
+Этот маппинг делает отображение из таких лейблов в некоторые более обширные классы. Например, 
+    * снежный барс -> ибрис;
+    * ирбис -> ирбис;
+
+* **supported_classes** - это те классы, которые мы в итоге используем. Именно по этому списку:
+    * формируется отображение из лейбла в индекс и обратно. Поэтому важно дописывать новые классы в конец, если мы хотим сохранить порядок логитов на выходе из модели. Если мы переименовываем класс, то важно оставить его на старом месте. Наприме, при добавлении stage_5 было важно было заменить 'Сибирскую косулю' на 'Косулю' именно с помощью преименования, оставляя лейбл на месте, чтобы сохранить порядок логитов;
+    * фильтруются классы, которые не будут использоваться. Исключаются все классы, которых нет в этом списке;
+
+* **russian_to_english_mapping** - отображение из названий на русском в названия на английском.

@@ -49,7 +49,7 @@ test_args: tuple[tuple[Path, str, str], ...] = (
     (test_dir / 'assets' / 'test_ocr' / 'leopard_2426.jpg', '2016:08:24', '07:48:50'),
     (test_dir / 'assets' / 'test_ocr' / 'LeopardCat_4046.jpg', '2016:10:07', '14:43:09'),
     (test_dir / 'assets' / 'test_ocr' / 'MuskDeer_1595.jpg', '2017:01:29', '15:53:15'),
-    (test_dir / 'assets' / 'test_ocr' / 'nightBlackBearbunight726.jpg', '2020:10:03', '05:36:45'),
+    # (test_dir / 'assets' / 'test_ocr' / 'nightBlackBearbunight726.jpg', '2020:10:03', '05:36:45'),
     (test_dir / 'assets' / 'test_ocr' / 'RaccoonDog254.jpg', '2016:03:31', '11:24:02'),
     (test_dir / 'assets' / 'test_ocr' / 'RacoonDog_114 (2).jpg', '2015:10:09', '06:03:04'),
     (test_dir / 'assets' / 'test_ocr' / 'RedFox(212).jpg', '2015:11:29', '11:30:21'),

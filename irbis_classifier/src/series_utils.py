@@ -1,3 +1,7 @@
+"""
+This code is mostly written by the Leonid Verkhovtsev
+"""
+
 from __future__ import annotations
 
 import re

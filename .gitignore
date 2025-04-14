@@ -161,9 +161,14 @@ cython_debug/
 
 data/*
 !data/configs/
+data/configs/experiment.json
 
 /reports/
 
 nohup.out
 
 *.ipynb
+
+models/*
+
+irbis_classifier/cli/*/__init__.py

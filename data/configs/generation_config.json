@@ -1,0 +1,29 @@
+[
+    {
+        "russian_label": "Барсук",
+        "prompt": [
+            "cameratrap photo of a european badger in the wildlife, photorealistic, from the side"
+        ],
+        "guidance_scale": 7.5,
+        "number_of_images": 500
+    },
+    {
+        "russian_label": "Другие животные",
+        "prompt": [
+            "a cow at the distance from the side, photorealistic",
+            "a cow at the distance, photorealistic"
+        ],
+        "guidance_scale": 7.5,
+        "number_of_images": 200
+    },
+    {
+        "russian_label": "Другие животные",
+        "prompt": [
+            "a dog running on a grassland",
+            "a dog, wildlife, photorealistic",
+            "a dog in the forest, photorealistic"
+        ],
+        "guidance_scale": 7.5,
+        "number_of_images": 200
+    }
+]

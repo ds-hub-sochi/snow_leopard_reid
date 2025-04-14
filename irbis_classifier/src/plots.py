@@ -7,18 +7,24 @@ from pathlib import Path
 import warnings
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import seaborn as sns
 from loguru import logger
 from matplotlib import pyplot as plt, rcParams
 from mpl_toolkits.axes_grid1 import ImageGrid
 
+from irbis_classifier.src.testing.test import MetricsEstimations
+
 
 warnings.filterwarnings('ignore')
 
+EXTRA_SMALL_SIZE: int = 8
 SMALL_SIZE: int = 12
 MEDIUM_SIZE: int = 16
 BIGGER_SIZE: int = 20
+LARGE_SIZE: int = 34
+EXTREMELY_SUPER_LARGE_SIZE: int = 40
 
 plt.rc('font', size=SMALL_SIZE)
 plt.rc('axes', titlesize=SMALL_SIZE)
@@ -27,7 +33,11 @@ plt.rc('xtick', labelsize=SMALL_SIZE)
 plt.rc('ytick', labelsize=SMALL_SIZE)
 plt.rc('legend', fontsize=SMALL_SIZE)
 plt.rc('figure', titlesize=BIGGER_SIZE)
-rcParams.update({'figure.autolayout': True})
+rcParams.update(
+    {
+        'figure.autolayout': True,
+    },
+)
 
 
 def create_classes_pie_plot(
@@ -96,7 +106,7 @@ def create_pie_plots_over_split(
     logger.success('pie plots were created')
 
 
-def create_classes_difference_bar_plot_over_split(
+def create_classes_difference_bar_plot_over_split(  # pylint: disable=too-many-locals
     data_dir: Path | str,
     show: bool,
     save: bool,
@@ -143,7 +153,9 @@ def create_classes_difference_bar_plot_over_split(
             ),
         )
 
-        for attribute, measurement in split_to_class_counts.items():
+        paddings: list[int] = (20, 20, 5)
+
+        for (attribute, measurement), padding in zip(split_to_class_counts.items(), paddings):
             offset = width * multiplier
             rects = ax.bar(
                 x + offset,
@@ -154,7 +166,9 @@ def create_classes_difference_bar_plot_over_split(
             )
             ax.bar_label(
                 rects,
-                padding=3,
+                padding=padding,
+                fontsize=SMALL_SIZE,
+                label_type='edge',
             )
             multiplier += 1
 
@@ -384,8 +398,8 @@ def create_sequence_length_histogram_comparison(  # pylint: disable=too-many-pos
             va='center',
             color='red' if difference < 0 else 'blue',
             fontweight='bold',
-            fontsize = 8,
-            rotation = 30,
+            fontsize=8,
+            rotation=75,
         )
 
     labels = [item.get_text() for item in ax.get_xticklabels()]
@@ -457,3 +471,207 @@ def create_image_grid(
         plt.savefig(save_dir / 'augmented_image_variants.png')  # type: ignore
 
     logger.success('Image grid was created')
+
+
+def create_barplot_with_confidence_intervals(  # pylint: disable=too-many-positional-arguments
+    f1_score_macro: MetricsEstimations,
+    metrics: dict[int, MetricsEstimations],
+    metric_max_value: float,
+    show: bool,
+    save: bool,
+    save_dir: str | Path | None,
+    metric_name: str | None,
+    labels: list[str],
+):
+    logger.info(f'barplot with the value of {metric_name} over classes creation has started')
+
+    with sns.color_palette(
+        'deep',
+        len(metrics.keys()),
+    ):
+        _ = plt.figure(figsize=(len(metrics) * 2, len(metrics)))
+
+        plt.axhline(
+            y=metric_max_value,
+            zorder=0,
+            color='red',
+        )
+
+        _ = plt.bar(
+            x=list(metrics.keys()),
+            height=[metrics[key].point for key in metrics],
+            width=0.4,
+            color='red',
+            align='center',
+            alpha=0.5,
+            zorder=3,
+        )
+
+        plt.errorbar(
+            x=list(metrics.keys()),
+            y=[metrics[key].point for key in metrics],
+            yerr=np.array(
+                [
+                    (
+                        max(
+                            metrics[key].point - metrics[key].lower,
+                            0 - metrics[key].lower,
+                        ),
+                        min(
+                            metrics[key].upper - metrics[key].point,
+                            1 - metrics[key].point,
+                        ),
+                    ) for key in metrics
+                ],
+            ).T,
+            linestyle='',
+            elinewidth=16,
+            zorder=4,
+        )
+
+        ax = plt.gca()
+        ax.set_axisbelow(True)
+
+        ax.grid(
+            linewidth=0.75,
+            zorder=0,
+        )
+        ax.grid(
+            which='minor',
+            linewidth=0.50,
+            zorder=0,
+        )
+        ax.minorticks_on()
+
+        plt.xticks(
+            range(len(list(metrics.keys()))),
+            labels,
+            rotation=45,
+            fontsize=LARGE_SIZE,
+        )
+
+        plt.yticks(
+            fontsize=EXTREMELY_SUPER_LARGE_SIZE,
+        )
+
+        plt.title(
+            f'Value of the {metric_name} with confidence intervals \n point estimate = {f1_score_macro.point:.3f}',
+            fontsize=EXTREMELY_SUPER_LARGE_SIZE,
+        )
+
+        if show:
+            plt.show()
+
+    if save and save_dir is not None:
+        save_dir = Path(save_dir).resolve()
+        save_dir.mkdir(
+            exist_ok=True,
+            parents=True,
+        )
+
+        plt.savefig(save_dir / f'{metric_name}_over_classes.png')  # type: ignore
+
+    logger.success(f'barplot with the value of {metric_name} over classes was created')
+
+
+def create_confusion_matrix(  # pylint: disable=too-many-positional-arguments
+    confision_matrix: list[list[int]] | npt.NDArray[np.float64],
+    labels: list[str] | tuple[str],
+    normalize: str | None,
+    show: bool,
+    save: bool,
+    save_dir: str | Path | None,
+    title: str | None = None,
+) -> None:
+    logger.info('confusion matrix creation has started')
+
+    assert normalize in {'over actual', 'over predicted'}, '"normalize" must be either "over_actual" or "over predicted"'
+
+    if normalize == 'over actual':
+        confision_matrix = np.array(
+            confision_matrix,
+            dtype=np.float32,
+        )
+        sum_over_actual = np.sum(
+            confision_matrix,
+            axis=1,
+        ).reshape(-1, 1)
+        confision_matrix /= sum_over_actual
+
+    elif normalize == 'over predicted':
+        confision_matrix = np.array(
+            confision_matrix,
+            dtype=np.float32,
+        )
+        sum_over_predicted = np.sum(
+            confision_matrix,
+            axis=0,
+        ).reshape(1, -1)
+        confision_matrix /= sum_over_predicted
+
+    if normalize is not None:
+        def _round(arg: np.float32) -> np.float32:
+            return round(arg, 3)
+
+        _round_vectorized = np.vectorize(_round)
+
+        confision_matrix = _round_vectorized(confision_matrix)  # pylint: disable=redefined-variable-type
+
+    labels = labels[:confision_matrix.shape[0]]
+
+    confusion_matrix_as_df: pd.DataFrame = pd.DataFrame(
+        confision_matrix,
+        index=labels,
+        columns=labels,
+    )
+
+    plt.figure(figsize=(len(labels), len(labels)))
+
+    axes: plt.axes = sns.heatmap(
+        confusion_matrix_as_df,
+        annot=True,
+        annot_kws={
+            'size': MEDIUM_SIZE,
+        }
+    )
+
+    axes.set_xlabel(
+        'Predicted',
+        fontsize=LARGE_SIZE,
+    )
+    axes.set_xticklabels(
+        labels,
+        rotation=90,
+        fontsize=BIGGER_SIZE,
+    )
+
+    axes.set_ylabel(
+        'Actual',
+        fontsize=LARGE_SIZE,
+    )
+    axes.set_yticklabels(
+        labels,
+        fontsize=BIGGER_SIZE,
+    )
+
+    plt.title(
+        'Confusion matrix' if title is None else title,
+        fontsize=LARGE_SIZE,
+    )
+
+    if show:
+        plt.show()
+
+    if save and save_dir is not None:
+        save_dir = Path(save_dir).resolve()
+        save_dir.mkdir(
+            exist_ok=True,
+            parents=True,
+        )
+        if title is None:
+            plt.savefig(save_dir / 'confusion_matrix.png')  # type: ignore
+        else:
+            title = title.lower().replace(' ', '_').replace('\n', '_')
+            plt.savefig(save_dir / f'{title}.png')  # type: ignore
+
+    logger.success('confusion matrix was created')

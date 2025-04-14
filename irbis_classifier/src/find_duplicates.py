@@ -1,4 +1,4 @@
-"""Module for image duplicates processing.
+"""
 This code is mostly created by Aleksey Tolkachev
 """
 

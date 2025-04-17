@@ -5,7 +5,7 @@
     "model_name": "eva02_large_patch14_448.mim_m38m_ft_in22k_in1k",
     "trainig_params": {
         "batch_size": 64,
-        "n_epochs": 2,
+        "n_epochs": 30,
         "lr": 0.000005,
         "use_scheduler": true,
         "warmup_epochs": 5,
@@ -31,5 +31,5 @@
         "std": [0.2686, 0.2613, 0.2758]
     },
     "device_ids": [0, 1],
-    "additional_run_info": "test_new_config"
+    "additional_run_info": ""
 }

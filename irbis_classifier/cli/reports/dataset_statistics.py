@@ -14,7 +14,7 @@ from irbis_classifier.src.plots import (
 @click.command()
 @click.option('--path_to_data_dir', type=click.Path(exists=True), help='The path to the data directory')
 @click.option('--path_to_save_dir', type=click.Path(), help='The path to the data directory')
-def collect_figures(
+def main(
     path_to_data_dir: Path | str,
     path_to_save_dir: Path | str,
 ):

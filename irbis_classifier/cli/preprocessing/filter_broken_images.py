@@ -27,7 +27,7 @@ def process_serie(current_serie: pd.Series):
 @click.command()
 @click.option('--path_to_data_dir', type=click.Path(exists=True), help='The path to the data directory')
 @click.option('--path_to_save_dir', type=click.Path(), help='The path to the data directory')
-def check_stages(
+def main(
     path_to_data_dir: str | Path,
     path_to_save_dir: str | Path,
 ):
@@ -59,4 +59,4 @@ def check_stages(
 
 
 if __name__ == "__main__":
-    check_stages()  # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter

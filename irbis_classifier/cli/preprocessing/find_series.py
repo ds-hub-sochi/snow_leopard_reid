@@ -81,7 +81,7 @@ def construct_series(
     type=click.Path(exists=True),
     help='The path to the json file with the russian to english mapping',
 )
-def find_series(  # pylint: disable=too-many-positional-arguments
+def main(  # pylint: disable=too-many-positional-arguments
     path_to_data_dir: Path | str,
     path_to_save_dir: Path | str,
     old_stages: str,
@@ -160,4 +160,4 @@ def find_series(  # pylint: disable=too-many-positional-arguments
 
 
 if __name__ == '__main__':
-    find_series()  # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter

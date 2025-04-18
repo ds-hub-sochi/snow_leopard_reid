@@ -23,7 +23,7 @@ ORIGIANAL_NAMING_TO_RUSSIAN: dict[str, str] = {
 
 @click.command()
 @click.option('--path_to_data', type=click.Path(exists=True), help='The path to the data directory')
-def add_data(  # pylint: disable=too-many-locals
+def main(  # pylint: disable=too-many-locals
     path_to_data: str | Path,
 ) -> None:
     repository_root_dir: Path = Path(__file__).parent.parent.parent.parent.resolve()
@@ -95,4 +95,4 @@ def add_data(  # pylint: disable=too-many-locals
                     Image.fromarray(img).save(image_save_path)
 
 if __name__ == '__main__':
-    add_data()  # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter

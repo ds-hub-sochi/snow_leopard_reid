@@ -47,7 +47,7 @@ class SavingConfig:
     type=click.Path(exists=True),
     help='path to the json-config file',
 )
-def run_saving(
+def main(
     path_to_config: str,
 ) -> None:
     with open(
@@ -103,4 +103,4 @@ def run_saving(
 
 
 if __name__ == "__main__":
-    run_saving()  # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter

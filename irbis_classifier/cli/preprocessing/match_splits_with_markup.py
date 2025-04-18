@@ -87,7 +87,7 @@ def add_markup(
 @click.option('--path_to_markup_dir', type=click.Path(exists=True), help='The path to the markup directory')
 @click.option('--path_to_save_dir', type=click.Path(), help='The path to the data directory')
 @click.option('--min_relative_size', default=0.01, help='Bounding box minimal relative height/width')
-def run_matching(
+def main(
     path_to_dir_with_splits: Path | str,
     path_to_markup_dir: Path | str,
     path_to_save_dir: Path | str,
@@ -113,4 +113,4 @@ def run_matching(
 
 
 if __name__ == '__main__':
-    run_matching()  # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter

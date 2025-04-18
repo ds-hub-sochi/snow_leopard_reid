@@ -25,7 +25,7 @@ from irbis_classifier.src.training.datasets import AnimalDataset
     help='Numner of samples to produce (original image excluded). Must be a square - 1, like 35 or 15',
 )
 @click.option('--image_index', type=int, default=4125, help='index of an image you want to display')
-def get_figure(
+def main(
     path_to_data_file: Path | str,
     path_to_save_dir: Path | str,
     n_samples: int,
@@ -189,4 +189,4 @@ def get_figure(
 
 
 if __name__ == '__main__':
-    get_figure()  # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter

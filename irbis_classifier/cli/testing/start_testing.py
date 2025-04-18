@@ -77,7 +77,7 @@ class TestingConfig:
     type=click.Path(exists=True),
     help='path to the json-config file',
 )
-def run_testing(
+def main(
     path_to_config: str | Path,
 ) -> None:
     with open(
@@ -182,4 +182,4 @@ def run_testing(
     logger.success(f'Results were saved to the {config.path_to_save_dir} directory')
 
 if __name__ == "__main__":
-    run_testing()  # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter

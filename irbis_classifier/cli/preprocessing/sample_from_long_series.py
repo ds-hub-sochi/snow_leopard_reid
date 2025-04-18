@@ -22,7 +22,7 @@ from irbis_classifier.src.utils import sample_from_dataframe
 )
 @click.option('--max_sequence_length', type=int, help='sequences with length bigger then this will be combined')
 @click.option('--resample_size', type=float, help='size of sequence after resampling. Absolute or a fraction')
-def resample_stages(
+def main(
     path_to_data_dir: Path | str,
     path_to_save_dir: Path | str,
     classes_to_sample_json: Path | str,
@@ -90,4 +90,4 @@ def resample_stages(
 
 
 if __name__ == '__main__':
-    resample_stages()  # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter

@@ -18,6 +18,7 @@ from torch.utils.data import DataLoader
 
 from irbis_classifier.src.label_encoder import create_label_encoder, LabelEncoder
 from irbis_classifier.src.models.factory import Factory
+from irbis_classifier.src.models.utils import get_last_linear
 from irbis_classifier.src.training import (
     create_train_val_test_datasets,
     setup_experimet,
@@ -28,6 +29,7 @@ from irbis_classifier.src.training import (
 from irbis_classifier.src.training.losses import LossFactory
 from irbis_classifier.src.training.warmup_schedulers import LinearWarmupLR
 from irbis_classifier.src.training.weights import get_classes_counts, get_classes_weights
+
 
 
 torch.manual_seed(123)
@@ -66,7 +68,8 @@ class ImageResizing:
 class TrainingParams:
     batch_size: int
     n_epochs: int
-    lr: float
+    head_lr: float
+    backbone_lr: float
     use_scheduler: bool
     use_ema_model: bool
     warmup_epochs: int
@@ -144,7 +147,7 @@ class TrainingConfig:  # pylint: disable=too-many-instance-attributes
     type=click.Path(exists=True),
     help='path to the json-config file',
 )
-def start_training(  # pylint: disable=too-many-statements,too-many-locals
+def main(  # pylint: disable=too-many-statements,too-many-locals
     path_to_config: str | Path,
 ):
     with open(
@@ -270,10 +273,29 @@ def start_training(  # pylint: disable=too-many-statements,too-many-locals
     )
     model = model.to(device)
 
-    optimizer: torch.optim.Optimizer = torch.optim.AdamW(
-        params=model.parameters(),
-        lr=config.trainig_params.lr,
-    )
+    if config.trainig_params.head_lr != config.trainig_params.backbone_lr:
+        head: nn.Linear = get_last_linear(model)
+
+        head_params: set[torch.Tensor] = set(head.parameters())
+        backbone_params: list[torch.Tensor] = [p for p in model.parameters() if p not in head_params]
+
+        optimizer = torch.optim.AdamW(
+            [
+                {
+                    'params': backbone_params,
+                    'lr': config.trainig_params.backbone_lr,
+                },
+                {
+                    'params': list(head_params),
+                    'lr': config.trainig_params.head_lr,
+                },
+            ],
+        )
+    else:
+        optimizer: torch.optim.Optimizer = torch.optim.AdamW(
+            params=model.parameters(),
+            lr=config.trainig_params.backbone_lr,
+        )
 
     if config.trainig_params.use_scheduler:
         scheduler: torch.optim.lr_scheduler.LRScheduler | None = torch.optim.lr_scheduler.CosineAnnealingLR(
@@ -284,12 +306,15 @@ def start_training(  # pylint: disable=too-many-statements,too-many-locals
         scheduler = None
 
     if config.trainig_params.warmup_epochs > 0:
-        warmup_scheduler: LinearWarmupLR | None = LinearWarmupLR(
-            optimizer,
-            config.trainig_params.warmup_epochs,
-            target_lr=config.trainig_params.lr,
-            initial_lr=1e-8,
-        )
+        if config.trainig_params.backbone_lr == config.trainig_params.head_lr:
+            warmup_scheduler: LinearWarmupLR | None = LinearWarmupLR(
+                optimizer,
+                config.trainig_params.warmup_epochs,
+                target_lr=config.trainig_params.backbone_lr,
+                initial_lr=1e-8,
+            )
+        else:
+            raise ValueError("for now there is no option to train model with different lrs with this warmup scheduler")
     else:
         warmup_scheduler = None
 
@@ -320,11 +345,19 @@ def start_training(  # pylint: disable=too-many-statements,too-many-locals
 
     scaler: torch.amp.GradScaler = torch.amp.GradScaler()
 
-    parameters = {
+    if config.trainig_params.backbone_lr != config.trainig_params.head_lr:
+        parameters = {
         'batch_size': config.trainig_params.batch_size,
-        'initial lerning rate': config.trainig_params.lr,
+        'initial head lerning rate': config.trainig_params.head_lr,
+        'initial backbone lerning rate': config.trainig_params.backbone_lr,
         'architecture': model.module.__class__.__name__,
     }
+    else:
+        parameters = {
+            'batch_size': config.trainig_params.batch_size,
+            'initial lerning rate': config.trainig_params.backbone_lr,
+            'architecture': model.module.__class__.__name__,
+        }
 
     experiment.log_parameters(parameters)
 
@@ -374,4 +407,4 @@ def start_training(  # pylint: disable=too-many-statements,too-many-locals
 
 
 if __name__ == "__main__":
-    start_training()  # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter

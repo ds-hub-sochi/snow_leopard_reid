@@ -119,7 +119,7 @@ def split_and_save(  # pylint: disable=too-many-locals
 @click.option('--path_to_save_dir', type=click.Path(), help='The path to the data directory')
 @click.option('--train_size', default=0.60, help='Train subpart relative size')
 @click.option('--val_size', default=0.20, help='Validation subpart relative size')
-def run_split(
+def main(
     path_to_dir_with_stages: Path | str,
     path_to_markup_dir: Path | str,
     path_to_save_dir: Path | str,
@@ -148,4 +148,4 @@ def run_split(
 
 
 if __name__ == '__main__':
-    run_split()  # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter

@@ -13,7 +13,7 @@ from PIL import Image
 
 @click.command()
 @click.option('--path_to_data', type=click.Path(exists=True), help='The path to the data directory')
-def add_data(path_to_data: str | Path) -> None:  # pylint: disable=too-many-locals
+def main(path_to_data: str | Path) -> None:  # pylint: disable=too-many-locals
     repository_root_dir: Path = Path(__file__).parent.parent.parent.parent.resolve()
 
     next_stage_index: int = len(glob(str(repository_root_dir / 'data' / 'raw' / 'full_images' / '*'))) + 1
@@ -79,4 +79,4 @@ def add_data(path_to_data: str | Path) -> None:  # pylint: disable=too-many-loca
 
 
 if __name__ == '__main__':
-    add_data()  # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter

@@ -20,7 +20,7 @@ from irbis_classifier.src.plots import create_sequence_length_histogram_comparis
 )
 @click.option('--path_to_save_dir', type=click.Path(), help='The path to the data directory')
 @click.option('--max_sequence_length', type=int, help='sequences with length bigger than this will be combined')
-def get_figure(
+def main(
     path_to_data_dir_before: Path | str,
     path_to_data_dir_after: Path | str,
     path_to_save_dir: Path | str,
@@ -41,4 +41,4 @@ def get_figure(
 
 
 if __name__ == '__main__':
-    get_figure()  # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter

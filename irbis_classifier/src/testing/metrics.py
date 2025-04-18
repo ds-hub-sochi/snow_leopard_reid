@@ -29,10 +29,11 @@ def create_confusion_matrix(
 
     confision_matrix: list[list[int]] = []
 
-    unique_actual_labels = sorted(list(set(y_true)))  # since we have all the classes in the val/test, it's OK
+    unique_actual_labels: list[int] = sorted(list(set(y_true)))
+    unique_predicted_labels: list[int] = sorted(list(set(y_predicted)))
 
     for _ in unique_actual_labels:
-        confision_matrix.append([0] * len(unique_actual_labels))
+        confision_matrix.append([0] * (max(unique_predicted_labels) + 1))
 
     for true_target, predicted_target in zip(y_true, y_predicted):
         confision_matrix[true_target][predicted_target] += 1

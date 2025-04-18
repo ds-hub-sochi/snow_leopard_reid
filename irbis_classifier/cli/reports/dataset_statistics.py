@@ -44,4 +44,4 @@ def main(
 
 
 if __name__ == '__main__':
-    collect_figures()  # pylint: disable=no-value-for-parameter
+    main()  # pylint: disable=no-value-for-parameter

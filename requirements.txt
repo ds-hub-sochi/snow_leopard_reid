@@ -24,7 +24,7 @@ pandas-stubs==2.2.3.241126
 pillow==10.2.0
 protobuf==6.30.2
 pytest==8.3.4
-PytorchWildlife==1.2.0
+PytorchWildlife==1.2.1
 regex==2024.11.6
 requests==2.32.3
 seaborn==0.13.2

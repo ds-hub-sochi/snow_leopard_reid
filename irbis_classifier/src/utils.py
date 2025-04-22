@@ -88,6 +88,7 @@ def detect_in_image(  # pylint: disable=too-many-locals
     Markup is presented in the x_center, y_center, width, height format
 
     Args:
+        image: (np.ndarray): an image where you want to detect animals
         detection_model (pw_detection.MegaDetectorV5): model you want to use for the detection
         confidence_threshold (float, optional): a confidence of a model. Defaults to 0.5.
 

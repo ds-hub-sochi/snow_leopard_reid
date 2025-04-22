@@ -51,7 +51,6 @@ class ClassificationTesterInterface(ABC):
         Returns:
             dict[int, MetricsEstimations]: mapping from labels to metric's confidence intervals 
         """
-        pass
 
     @abstractmethod
     def get_cumulative_estimate(  # pylint: disable=too-many-positional-arguments
@@ -77,7 +76,6 @@ class ClassificationTesterInterface(ABC):
         Returns:
             MetricsEstimations: confidence interval for the given metric
         """
-        pass
 
 
 class ClassificationTester(ClassificationTesterInterface):

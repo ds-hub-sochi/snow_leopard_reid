@@ -83,7 +83,7 @@ def main(  # pylint: disable=too-many-locals
         path_to_russian_to_english_mapping_json,
     )
 
-    for species_config in config:  # pylint: diable=too-many-nested-blocks
+    for species_config in config:  # pylint: disable=too-many-nested-blocks
         logger.info(f'generating examples for the {species_config.russian_label}')
 
         current_images_dump_dir: Path = images_dump_dir / species_config.russian_label

@@ -24,6 +24,7 @@ def test_model(  # pylint: disable=too-many-locals
     metrics over every label independently, and a confusion matrix. Confidence intervals will be computed using bootstrap.
 
     Args:
+        test_dataloder (torch.utils.data.DataLoader): a dataloder object associated with the test dataset
         model (nn.Module): model you want to test
         metrics (Sequence[str]): metrics you want to use during the testing
         bootstrap_size (int, optional): a size of a bootstrapped sample. Defaults to 10000.

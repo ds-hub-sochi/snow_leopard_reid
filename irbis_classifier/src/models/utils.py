@@ -55,7 +55,7 @@ def replace_last_linear(
     module: nn.Module,
     n_classes: int,
     reuse_previous_weights: bool = False
-) -> nn.Module:
+) -> nn.Module | None:
     """
     This function finds last (the closest one to the model output layer) linear layer and replaces it
     with the new one that has specified number of out_features.
@@ -69,7 +69,7 @@ def replace_last_linear(
     Raises:
         ValueError: raised if reuse_previous_weights is True, but old layer has more out_features than the new one.
     Returns:
-        nn.Module: model copy with re-initialized last linear layer.
+        nn.Module: model copy with re-initialized last linear layer; the same model, os there were no linear layers
     """
 
     module_copy: nn.Module = deepcopy(module)
@@ -115,3 +115,5 @@ def replace_last_linear(
         )
 
         return module_copy
+
+    return module_copy

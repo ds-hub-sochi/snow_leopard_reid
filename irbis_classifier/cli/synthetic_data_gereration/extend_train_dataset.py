@@ -44,7 +44,7 @@ from irbis_classifier.src.utils import detect_in_image
     default=20,
     help="number of images that model will parallel generate. Depend on your GPU's capacity"
 )
-def main(
+def main(  # pylint: disable=too-many-locals
     path_to_config: str | Path,
     path_to_unification_mapping_json: str | Path,
     path_to_supported_labels_json: str | Path,
@@ -83,7 +83,7 @@ def main(
         path_to_russian_to_english_mapping_json,
     )
 
-    for species_config in config:
+    for species_config in config:  # pylint: disable=too-many-nested-blocks
         logger.info(f'generating examples for the {species_config.russian_label}')
 
         current_images_dump_dir: Path = images_dump_dir / species_config.russian_label

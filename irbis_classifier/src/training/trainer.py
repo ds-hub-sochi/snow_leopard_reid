@@ -85,7 +85,6 @@ class TrainerInterface(ABC):
             use_ema_model (bool, optional): will EMA model be trained or not. Defaults to False.
             gradient_accumulation_steps (int, optional): how much gradient accumulation steps will be used. Defaults to 1.
         """
-        pass
 
     @abstractmethod
     def _training_step(  # pylint: disable=too-many-positional-arguments
@@ -102,7 +101,6 @@ class TrainerInterface(ABC):
         """
         Used for the training
         """
-        pass
 
     @abstractmethod
     @torch.inference_mode()
@@ -116,7 +114,6 @@ class TrainerInterface(ABC):
         """
         Used for the validation
         """
-        pass
 
     @abstractmethod
     def _logging_step(  # pylint: disable=too-many-positional-arguments
@@ -130,7 +127,6 @@ class TrainerInterface(ABC):
         """
         Used for the logging
         """
-        pass
 
     @abstractmethod
     def _saving_step(
@@ -142,7 +138,6 @@ class TrainerInterface(ABC):
         """
         Used to save model checkpoints
         """
-        pass
 
 
 class Trainer(TrainerInterface):
